@@ -1,26 +1,27 @@
 %% Reset all
-clear all
+clear
 close all
+clc
 restoredefaultpath
 
 %% Base paths
-if contains(pwd,'/home/chrpfe')
+if contains(pwd,'/home/krimat')
     % Server:
-    base_data_path = '/archive/21099_opm/';
-    base_save_path = '/home/chrpfe/Documents/21099_opm/Phalanges';
-    base_matlab_path = '/home/chrpfe/Documents/MATLAB/';
-    project_scripts_path = '/home/chrpfe/Documents/MATLAB/21099_opm/phalanges';
+    base_data_path = '/archive/24110_opm_auditory/';
+    base_save_path = '/home/krimat/Documents/aud_data';
+    base_matlab_path = '/home/krimat/Documents/MATLAB/';
+    project_scripts_path = '/home/krimat/Documents/MATLAB/opm_auditory';
 else
     % Laptop:
-    base_data_path = '/Users/christophpfeiffer/data_archive/21099_opm';
-    base_save_path = '/Users/christophpfeiffer/data_local/Benchmarking_phalanges';
-    base_matlab_path = '/Users/christophpfeiffer/Dropbox/Mac/Documents/MATLAB';
-    project_scripts_path = '/Users/christophpfeiffer/opm_phalanges';
+    base_data_path = 'C:/Users/Kristina/Documents/KTH dokument/MEX/24110_opm_auditory';
+    base_save_path = 'C:/Users/Kristina/Documents/KTH dokument/MEX/Resultat';
+    base_matlab_path = 'C:/Users/Kristina/Documents/MATLAB';
+    project_scripts_path = 'C:/Users/Kristina/Documents/MATLAB/opm_auditory';
 end
 
 %% Set up fieldtrip
-addpath(fullfile(base_matlab_path,'fieldtrip-20231220/')) % Fieldtrip path
-addpath(fullfile(base_matlab_path,'fieldtrip_private')) % Fieldtrip private functions
+addpath ('C:\Users\Kristina\Documents\GitHub\fieldtrip') % Fieldtrip path
+%addpath(fullfile(base_matlab_path,'fieldtrip_private')) % Fieldtrip private functions
 addpath(project_scripts_path)
 ft_defaults
 
@@ -37,10 +38,10 @@ overwrite.mne = true;
 
 params = [];
 params.pre = 0.1; %sec
-params.post = 0.4; %sec
+params.post = 0.5; %sec
 params.filter = [];
 params.filter.hp_freq = 3;
-params.filter.lp_freq = 100;
+params.filter.lp_freq = 50;
 params.filter.bp_freq = [];
 params.filter.notch = sort([50:50:150 60:60:120]);
 params.n_comp = 40;
@@ -53,23 +54,13 @@ params.squidmag_std_threshold = 5e-12;
 params.squidgrad_std_threshold = 5e-11;
 params.hpi_freq = 33;
 
-params.trigger_code = [2 4 8 16 32];
-params.phalange_labels = {'I3' 'I2' 'I1' 'T1' 'I2b'};
+params.trigger_code = [1 3 5 11 13];
+params.trigger_labels = {'N' 'NG' 'G' 'H-NG' 'H-G'}; % Normal, No-Go, Go, High No-Go, High Go
 
 %% Subjects + dates
-subses = {'0005' '240208';
-    '0905' '240229';
-    '0916' '240320';
+subses = {
     '0953' '241104';
-    '1096' '241022';
-    '1153' '240321';
-    '1167' '240425';
-    '1186' '240925';
-    '1190' '241023';
-    '1191' '241024';
-    '1193' '241029';
-    '1194' '241029';
-    '1195' '241030'};
+    };
 mri_files = {'00000001.dcm' 
     '/mri/sub-15931_T1w.nii.gz'  
     '/nifti/anat/sub-15985_T1w.nii.gz'};
@@ -83,17 +74,17 @@ for i_sub = 1:size(subses,1)
     save_path = fullfile(base_save_path,params.sub);
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
     if ~exist(save_path, 'dir')
-       mkdir(save_path)
+       mkdir(base_save_path)
     end
     if ~exist(fullfile(save_path,'figs'), 'dir')
        mkdir(fullfile(save_path,'figs'))
     end
-    meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
+    meg_file = fullfile(raw_path, 'meg', 'AudOddMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
     if i_sub == 9
-        meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98.fif');
+        meg_file = fullfile(raw_path, 'meg', 'AudOddMEG_proc-tsss+corr98.fif');
     end
-    opm_file = fullfile(raw_path, 'osmeg', 'PhalangesOPM_raw.fif');
-    aux_file = fullfile(raw_path, 'meg', 'PhalangesEEG.fif');
+    opm_file = fullfile(raw_path, 'osmeg', 'AudOddOPM_raw.fif');
+    aux_file = fullfile(raw_path, 'meg', 'AudOddEEG.fif');
     hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
 
     %% OPM-MEG 
@@ -108,13 +99,15 @@ for i_sub = 1:size(subses,1)
 
         % Read data
         [opm_cleaned, opmeeg_cleaned] = read_osMEG(opm_file, aux_file, save_path, params); % Read data
-        
-        if i_sub <=3 % Flip amplitudes in old recordings
+
+%{        
+       if i_sub <=3 % Flidatp amplitudes in old recordings
             chs = find(contains(opm_cleaned.label,'bz'));
             for i_trl = 1:length(opm_cleaned.trial)
                 opm_cleaned.trial{i_trl}(chs,:) = -opm_cleaned.trial{i_trl}(chs,:);
             end
         end
+%}
 
         % ICA
         params.modality = 'opm';
@@ -231,9 +224,9 @@ for i_sub = 6%7:size(subses,1)
         load(fullfile(save_path, 'meshes.mat'));
         load(fullfile(save_path, 'mri_resliced.mat'));
     else
-        meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
+        meg_file = fullfile(raw_path, 'meg', 'MEG_proc-tsss+corr98+mc+avgHead_meg.fif');
         if i_sub == 9
-            meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98.fif');
+            meg_file = fullfile(raw_path, 'meg', 'MEG_proc-tsss+corr98.fif');
         end
         mri_file = fullfile(mri_path, 'orig','001.mgz');
         [headmodels, meshes] = prepare_mri(mri_file,meg_file,save_path);
@@ -253,9 +246,9 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, 'hpi_fit.mat'));
         load(fullfile(save_path, 'opm_trans.mat'));
     else
-        meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
+        meg_file = fullfile(raw_path, 'meg', 'MEG_proc-tsss+corr98+mc+avgHead_meg.fif');
         if i_sub == 9
-            meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98.fif');
+            meg_file = fullfile(raw_path, 'meg', 'MEG_proc-tsss+corr98.fif');
         end
         ft_hastoolbox('mne', 1);
         load(fullfile(save_path, [params.sub '_opm_ica_ds']));
