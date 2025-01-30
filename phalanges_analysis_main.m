@@ -20,7 +20,7 @@ else
 end
 
 %% Set up fieldtrip
-addpath ('C:\Users\Kristina\Documents\GitHub\fieldtrip') % Fieldtrip path
+addpath ('/home/krimat/Documents/MATLAB/fieldtrip') % Fieldtrip path
 %addpath(fullfile(base_matlab_path,'fieldtrip_private')) % Fieldtrip private functions
 addpath(project_scripts_path)
 ft_defaults
@@ -125,7 +125,7 @@ for i_sub = 1:size(subses,1)
         opmeeg_ica = ica_MEG(opmeeg_cleaned, save_path, params);
         close all
 
-        % Average
+        %% Average
         params.modality = 'opm';
         params.layout = 'fieldlinebeta2bz_helmet.mat';
         params.chs = '*bz';
@@ -134,6 +134,7 @@ for i_sub = 1:size(subses,1)
         opm_timelocked = timelock_MEG(opm_ica, save_path, params);
         close all
 
+        %%
         params.modality = 'opmeeg';
         params.layout = opmeeg_layout;
         params.chs = 'EEG*';
@@ -281,9 +282,9 @@ for i_sub = 2:size(subses,1)
         load(fullfile(save_path, [params.sub '_squidmag_timelocked.mat']))
         squidmag_timelocked = timelocked;
         clear timelocked;
-        meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
+        meg_file = fullfile(raw_path, 'meg', 'MEG_proc-tsss+corr98+mc+avgHead_meg.fif');
         if i_sub == 9
-            meg_file = fullfile(raw_path, 'meg', 'PhalangesMEG_proc-tsss+corr98.fif');
+            meg_file = fullfile(raw_path, 'meg', 'MEG_proc-tsss+corr98.fif');
         end
         headshape = ft_read_headshape(meg_file);
         for i = 1:5
