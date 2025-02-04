@@ -133,8 +133,7 @@ for i_sub = 1:size(subses,1)
         params.amp_label = 'B [fT]';
         opm_timelocked = timelock_MEG(opm_ica, save_path, params);
         close all
-
-        %%
+%%        
         params.modality = 'opmeeg';
         params.layout = opmeeg_layout;
         params.chs = 'EEG*';
@@ -158,7 +157,7 @@ for i_sub = 1:size(subses,1)
 
         % Read data
         [squid_cleaned, squideeg_cleaned] = read_cvMEG(meg_file, save_path, params); % Read data
-        
+     
         % ICA
         params.modality = 'squid';
         params.layout = 'neuromag306mag.lay';
@@ -175,7 +174,7 @@ for i_sub = 1:size(subses,1)
         squideeg_ica = ica_MEG(squideeg_cleaned, save_path, params);
         close all
 
-        % Average
+        %% Average
         params.modality = 'squidmag';
         params.layout = 'neuromag306mag.lay';
         params.chs = 'megmag';
