@@ -38,12 +38,12 @@ overwrite.mne = true;
 
 params = [];
 params.pre = 0.1; %sec
-params.post = 0.5; %sec
+params.post = 1; %sec
 params.filter = [];
 params.filter.hp_freq = 3;
 params.filter.lp_freq = 50;
 params.filter.bp_freq = [];
-params.filter.notch = sort([50:50:150 60:60:120]);
+params.filter.notch = sort([50 60]);
 params.n_comp = 40;
 params.ica_threshold = 0.8; % cutoff for EOG/ECG coherence
 params.z_threshold = 20;
@@ -55,7 +55,10 @@ params.squidgrad_std_threshold = 5e-11;
 params.hpi_freq = 33;
 
 params.trigger_code = [1 3 5 11 13];
-params.trigger_labels = {'N' 'NG' 'G' 'H-NG' 'H-G'}; % Normal, No-Go, Go, High No-Go, High Go
+params.trigger_labels = {'Std' 'NoGo' 'Go' 'HighNoGo' 'HighGo'}; % Normal, No-Go, Go, High No-Go, High Go
+
+% params.oldtrigger_code = [1 10 12 18 20]
+% params.oldtrigger_labels = ['Std' 'HighNoGo' 'HighGo' 'NoGo' 'Go']
 
 %% Subjects + dates
 subses = {

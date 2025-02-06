@@ -1,14 +1,31 @@
 function [timelocked] = timelock_MEG(data, save_path, params)
     
 timelocked = cell(3,1); % cell(rader, columner)
-M100 = cell(5,1);
-h = figure; 
-hold on
-leg = [];
+% M100 = cell(5,1);
+% h = figure; 
+% hold on
+% leg = [];   
 
 cfg = [];
 cfg.channel = params.chs;
 data = ft_selectdata(cfg, data);
+
+%% Saving trigger indeces of 3 and 11 and each Std trigger before
+params.trials_lowNoGo = [];
+params.trials = find(data.trialinfo==params.trigger_code(2)); % Finds index of trigger 3
+for i = 1:length(params.trials)
+    IndexBefore = params.trials(i)-1; % Finds the index before the trigger
+    params.trials_lowNoGo = [params.trials_lowNoGo; IndexBefore]; % Adds that preceding index
+    params.trials_lowNoGo = [params.trials_lowNoGo; params.trials(i)]; % Adds index of trigger 3
+end
+
+params.trials_highNoGo = [];
+params.trials = find(data.trialinfo==params.trigger_code(4));
+for i = 1:length(params.trials)
+    IndexBefore = params.trials(i)-1;
+    params.trials_highNoGo = [params.trials_highNoGo; IndexBefore];
+    params.trials_highNoGo = [params.trials_highNoGo; params.trials(i)];
+end
 
 %% Normal trigger
 params.trials = find(data.trialinfo==params.trigger_code(1));
@@ -77,9 +94,6 @@ plot_butterfly(data, params, save_path)
 % xlabel('time [ms]')
 % saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_evoked_peakchannel_ph' num2str(length(params.trigger_code(1))) '.jpg']))
 
-% New Topoplot
-%plot_topo(code,name)
-
 % % Topoplot
 % cfg = [];
 % cfg.xlim = [M100{params.trigger_code > 1 & params.trigger_code < 8}.peak_latency-0.01 M100{params.trigger_code > 1 & params.trigger_code < 8}.peak_latency+0.01];
@@ -92,13 +106,11 @@ plot_butterfly(data, params, save_path)
 % saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_M100_topo_low-' params.trigger_labels{params.trigger_code > 1 & params.trigger_code < 8} '.jpg']))
 
 %% High trigger
-cfg = [];
-cfg.covariance          = 'yes';
-cfg.covariancewindow    = 'prestim';
-cfg.trials = find(or(data.trialinfo==params.trigger_code(4),data.trialinfo==params.trigger_code(5)));
-timelocked{or(params.trigger_code(4),params.trigger_code(5))} = ft_timelockanalysis(cfg, data);
-dat = timelocked{or(params.trigger_code(4),params.trigger_code(5))}; % timelock averages the data
-save(fullfile(save_path, [params.sub '_' params.modality '_timelocked']), 'timelocked', '-v7.3'); 
+% Butterfly plot
+params.trials = find(ismember(data.trialinfo, params.trigger_code(4:5))); %Första är vid nr 17 (trigger 13)
+params.condition = 'HighTone';
+plot_butterfly(data, params, save_path)
+
 % [~, interval_M100(1)] = min(abs(dat.time-0.08)); % find closest time sample
 % [~, interval_M100(2)] = min(abs(dat.time-0.125)); % find closest time sample
 % [~, interval_M100(3)] = min(abs(dat.time-0)); % find closest time sample
@@ -160,11 +172,6 @@ save(fullfile(save_path, [params.sub '_' params.modality '_timelocked']), 'timel
 % xlabel('time [ms]')
 % saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_evoked_peakchannel_ph' num2str(length(params.trigger_code(2),params.trigger_code(3))) '.jpg']))
 
-% New Butterfly plot code
-code = or(params.trigger_code(4),params.trigger_code(5));
-name = high;
-plot_butterfly(code, name)
-
 % % Topoplot
 % cfg = [];
 % cfg.xlim = [M100{params.trigger_code > 1 & params.trigger_code < 8}.peak_latency-0.01 M100{params.trigger_code > 1 & params.trigger_code < 8}.peak_latency+0.01];
@@ -178,12 +185,12 @@ plot_butterfly(code, name)
 
 
 %% Low trigger
-cfg = [];
-cfg.covariance          = 'yes';
-cfg.covariancewindow    = 'prestim';
-cfg.trials = find(or(data.trialinfo==params.trigger_code(2),data.trialinfo==params.trigger_code(3)));
-timelocked{or(params.trigger_code(2), params.trigger_code(3))} = ft_timelockanalysis(cfg, data);
-dat = timelocked{or(params.trigger_code(2), params.trigger_code(3))}; % timelock averages the data
+% Butterfly plot
+params.trials = find(ismember(data.trialinfo, params.trigger_code(2:3)));
+params.condition = 'LowTone';
+plot_butterfly(data, params, save_path)
+
+
 % [~, interval_M100(1)] = min(abs(dat.time-0.08)); % find closest time sample
 % [~, interval_M100(2)] = min(abs(dat.time-0.125)); % find closest time sample
 % [~, interval_M100(3)] = min(abs(dat.time-0)); % find closest time sample
@@ -244,12 +251,6 @@ dat = timelocked{or(params.trigger_code(2), params.trigger_code(3))}; % timelock
 % ylabel(params.amp_label)
 % xlabel('time [ms]')
 % saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_evoked_peakchannel_ph' num2str(length(params.trigger_code(2),params.trigger_code(3))) '.jpg']))
-
-% New Butterfly plot code
-code = or(params.trigger_code(2),params.trigger_code(3));
-name = low;
-plot_butterfly(code, name)
-
 
 % % Topoplot
 % cfg = [];
