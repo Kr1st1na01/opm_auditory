@@ -1,5 +1,7 @@
 function [timelocked] = timelock_MEG(data, save_path, params)
-    
+
+ % Test här :))) GIrl varför är den röd?
+
 timelocked = cell(3,1); % cell(rader, columner)
 % M100 = cell(5,1);
 % h = figure; 
