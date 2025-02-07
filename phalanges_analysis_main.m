@@ -135,6 +135,7 @@ for i_sub = 1:size(subses,1)
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
         opm_timelocked = timelock_MEG(opm_ica, save_path, params);
+        %preLowNG_timelocked = timelocked_MEG()
         close all
 %%        
         params.modality = 'opmeeg';

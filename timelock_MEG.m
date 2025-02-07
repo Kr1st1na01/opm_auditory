@@ -11,21 +11,29 @@ cfg.channel = params.chs;
 data = ft_selectdata(cfg, data);
 
 %% Saving trigger indeces of 3 and 11 and each Std trigger before
-params.trials_lowNoGo = [];
+params.trials_LowNG = [];
+params.trials_preLowNG = [];
 params.trials = find(data.trialinfo==params.trigger_code(2)); % Finds index of trigger 3
 for i = 1:length(params.trials)
     IndexBefore = params.trials(i)-1; % Finds the index before the trigger
-    params.trials_lowNoGo = [params.trials_lowNoGo; IndexBefore]; % Adds that preceding index
-    params.trials_lowNoGo = [params.trials_lowNoGo; params.trials(i)]; % Adds index of trigger 3
+    params.trials_preLowNG = [params.trials_preLowNG; IndexBefore]; % Adds that preceding index
+    params.trials_LowNG = [params.trials_LowNG; params.trials(i)]; % Adds index of trigger 3
 end
+% params.trials = params.trials_LowNG;
+% params.condition = "LowNoGo";
+% plot_butterfly(data, params, save_path)
 
-params.trials_highNoGo = [];
+params.trials_HighNG = [];
+params.trials_preHighNG = [];
 params.trials = find(data.trialinfo==params.trigger_code(4));
 for i = 1:length(params.trials)
     IndexBefore = params.trials(i)-1;
-    params.trials_highNoGo = [params.trials_highNoGo; IndexBefore];
-    params.trials_highNoGo = [params.trials_highNoGo; params.trials(i)];
+    params.trials_preHighNG = [params.trials_preHighNG; IndexBefore];
+    params.trials_HighNG = [params.trials_HighNG; params.trials(i)];
 end
+
+%%
+
 
 %% Normal trigger
 params.trials = find(data.trialinfo==params.trigger_code(1));
