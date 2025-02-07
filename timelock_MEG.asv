@@ -1,5 +1,5 @@
 function [timelocked] = timelock_MEG(data, save_path, params)
-    
+
 timelocked = cell(3,1); % cell(rader, columner)
 % M100 = cell(5,1);
 % h = figure; 
@@ -11,22 +11,34 @@ cfg.channel = params.chs;
 data = ft_selectdata(cfg, data);
 
 %% Saving trigger indeces of 3 and 11 and each Std trigger before
-params.trials_lowNoGo = [];
+LowNG = [];
+preLowNG = [];
 params.trials = find(data.trialinfo==params.trigger_code(2)); % Finds index of trigger 3
 for i = 1:length(params.trials)
     IndexBefore = params.trials(i)-1; % Finds the index before the trigger
-    params.trials_lowNoGo = [params.trials_lowNoGo; IndexBefore]; % adds th
-    params.trials_lowNoGo = [params.trials_lowNoGo; params.trials(i)]; % Finds index of trigger before 3
+    preLowNG = [preLowNG; IndexBefore]; % Adds that preceding index
+    LowNG = [LowNG; params.trials(i)]; % Adds index of trigger 3
 end
 
-
-params.trials_highNoGo = [];
-params.trials = find(data.trialinfo==params.trigger_code(4)); % Finds index of trigger 3
+HighNG = [];
+preHighNG = [];
+params.trials = find(data.trialinfo==params.trigger_code(4));
 for i = 1:length(params.trials)
     IndexBefore = params.trials(i)-1;
-    params.trials_highNoGo = [params.trials_highNoGo; IndexBefore];
-    params.trials_highNoGo = [params.trials_highNoGo; params.trials(i)]; % Finds index of trigger before 3
+    preHighNG = [preHighNG; IndexBefore];
+    HighNG = [HighNG; params.trials(i)];
 end
+
+%% Timelock the all the params.trials so I get 4 different timelocked trials.
+params.trials = LowNG;
+params.condition = 'Low No Go';
+plot_butterfly(data, params, save_path)
+
+params.trials = preLowNG;
+params.condition = 'pre Low No Go';
+plot_butterfly(data, params, save_path)
+
+
 
 %% Normal trigger
 params.trials = find(data.trialinfo==params.trigger_code(1));
