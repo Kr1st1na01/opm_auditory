@@ -11,23 +11,21 @@ cfg.channel = params.chs;
 data = ft_selectdata(cfg, data);
 
 %% Saving trigger indeces of 3 and 11 and each Std trigger before
+
+
 LowNG = [];
 preLowNG = [];
 params.trials = find(data.trialinfo==params.trigger_code(2)); % Finds index of trigger 3
 for i = 1:length(params.trials)
-    IndexBefore = params.trials(i)-1; % Finds the index before the trigger
-    preLowNG = [preLowNG; IndexBefore]; % Adds that preceding index
+    preLowNG = [preLowNG; params.trials(i)-1]; % Adds that preceding index
     LowNG = [LowNG; params.trials(i)]; % Adds index of trigger 3
-    avg_MNN = data.trialinfo(LowNG(i)) - data.trialinfo(preLowNG(i)) % Här kommer jag inte ihåg om data.trialinfo innehöll info eller hur den ser ut, förmodligen behöver jag ändra detta
-    MNN_Low = [MNN_Low; avg_MNN]
 end
 
 HighNG = [];
 preHighNG = [];
 params.trials = find(data.trialinfo==params.trigger_code(4));
 for i = 1:length(params.trials)
-    IndexBefore = params.trials(i)-1;
-    preHighNG = [preHighNG; IndexBefore];
+    preHighNG = [preHighNG; params.trials(i)-1];
     HighNG = [HighNG; params.trials(i)];
 end
 
@@ -38,10 +36,13 @@ plot_butterfly(data, params, save_path)
 
 params.trials = preLowNG;
 params.condition = 'pre Low No Go';
-plot_butterfly(data, params, save_path)
+%plot_butterfly(data, params, save_path)
 
-params.trials = MNN_Low;
-params.condition = 'MNN Low';
+MMN_low = [];
+%MMN_low = [MMN_low; cellfun(@minus, )];
+
+params.trials = MMN_low;
+params.condition = 'MMN Low';
 plot_butterfly(data, params, save_path)
 
 params.trials = HighNG;

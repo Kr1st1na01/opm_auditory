@@ -11,12 +11,13 @@ cfg.channel = params.chs;
 data = ft_selectdata(cfg, data);
 
 %% Saving trigger indeces of 3 and 11 and each Std trigger before
+
+
 LowNG = [];
 preLowNG = [];
 params.trials = find(data.trialinfo==params.trigger_code(2)); % Finds index of trigger 3
 for i = 1:length(params.trials)
-    IndexBefore = params.trials(i)-1; % Finds the index before the trigger
-    preLowNG = [preLowNG; IndexBefore]; % Adds that preceding index
+    preLowNG = [preLowNG; params.trials(i)-1]; % Adds that preceding index
     LowNG = [LowNG; params.trials(i)]; % Adds index of trigger 3
 end
 
@@ -24,21 +25,33 @@ HighNG = [];
 preHighNG = [];
 params.trials = find(data.trialinfo==params.trigger_code(4));
 for i = 1:length(params.trials)
-    IndexBefore = params.trials(i)-1;
-    preHighNG = [preHighNG; IndexBefore];
+    preHighNG = [preHighNG; params.trials(i)-1];
     HighNG = [HighNG; params.trials(i)];
 end
 
-%% Timelock the all the params.trials so I get 4 different timelocked trials.
+%% Timelock all the params.trials so I get 4 different timelocked trials (timelock is done when it is plotted).
 params.trials = LowNG;
 params.condition = 'Low No Go';
-plot_butterfly(data, params, save_path)
+%plot_butterfly(data, params, save_path)
 
 params.trials = preLowNG;
 params.condition = 'pre Low No Go';
+%plot_butterfly(data, params, save_path)
+
+MMN_low = [];
+MMN_low = [MMN_low; cellfun(@minus, plot_butterfly(data, params.trials(LowNG), save_path), plot_butterfly(data, params.trials(preLowNG), save_path))];
+
+params.trials = MMN_low;
+params.condition = 'MMN Low';
 plot_butterfly(data, params, save_path)
 
+params.trials = HighNG;
+params.condition = 'High No Go';
+plot_butterfly(data, params, save_path)
 
+params.trials = preHighNG;
+params.condition = 'pre High No Go';
+plot_butterfly(data, params, save_path)
 
 %% Normal trigger
 params.trials = find(data.trialinfo==params.trigger_code(1));
