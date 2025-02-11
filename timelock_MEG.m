@@ -28,34 +28,40 @@ for i = 1:length(params.trials)
 end
 
 %% Timelock all the params.trials so I get 4 different timelocked trials (timelock is done when it is plotted).
-params.trials = find(data.trialinfo==params.trigger_code(1));
-params.condition = 'Std';
-timelocked = timelock(data, params, save_path);
-plot_butterfly(data, timelocked, params, save_path)
-
-params.trials = LowNG;
-params.condition = 'Low No Go';
-timelocked = timelock(data, params, save_path);
-plot_butterfly(data, timelocked, params, save_path)
-
-params.trials = preLowNG;
-params.condition = 'pre Low No Go';
-timelocked = timelock(data, params, save_path);
-plot_butterfly(data, timelocked, params, save_path)
-
-params.trials = HighNG;
-params.condition = 'High No Go';
-timelocked = timelock(data, params, save_path);
-plot_butterfly(data, timelocked, params, save_path)
-
-params.trials = preHighNG;
-params.condition = 'pre High No Go';
-timelocked = timelock(data, params, save_path);
-plot_butterfly(data, timelocked, params, save_path)
+% params.trials = find(data.trialinfo==params.trigger_code(1));
+% params.condition = 'Std';
+% timelocked = timelock(data, params, save_path);
+% plot_butterfly(data, timelocked, params, save_path)
+% 
+% params.trials = LowNG;
+% params.condition = 'Low No Go';
+% timelocked = timelock(data, params, save_path);
+% plot_butterfly(data, timelocked, params, save_path)
+% 
+% params.trials = preLowNG;
+% params.condition = 'pre Low No Go';
+% timelocked = timelock(data, params, save_path);
+% plot_butterfly(data, timelocked, params, save_path)
+% 
+% params.trials = HighNG;
+% params.condition = 'High No Go';
+% timelocked = timelock(data, params, save_path);
+% plot_butterfly(data, timelocked, params, save_path)
+% 
+% params.trials = preHighNG;
+% params.condition = 'pre High No Go';
+% timelocked = timelock(data, params, save_path);
+% plot_butterfly(data, timelocked, params, save_path)
 
 %% MMN
-%Low_MNN = load(params.sub '_' params.modality '_timelocked_pre Low No Go') - load(params.sub '_' params.modality '_timelocked_Low No Go'); % Load the low tone file and pre low and subtract them from each other
-butterfly_plot(Low_MNN, params, save_path)
+params.trials = LowNG;
+params.condition = 'MNN for Low vs pre-Low trigger';
+Low_MNN_pre = load([save_path '/' params.sub '_' params.modality '_timelocked_pre Low No Go.mat']);
+Low_MNN_trigger = load([save_path '/' params.sub '_' params.modality '_timelocked_Low No Go.mat']); % Load the low tone file and pre low and subtract them from each other
+Copy = Low_MNN_trigger.timelocked_data.avg;
+Low_MNN_trigger.timelocked_data.avg = Low_MNN_trigger.timelocked_data.avg - Low_MNN_pre.timelocked_data.avg;
+butterfly_plot(data, Low_MNN_trigger, params, save_path)
+Low_MNN_trigger.timelocked_data.avg = Copy;
 
 %High_MNN = load(params.sub '_' params.modality '_timelocked_High No Go'); % Load the pre High tone file
 %load(params.sub '_' params.modality '_timelocked_pre High No Go'); % Load the pre High tone file
