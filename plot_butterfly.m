@@ -1,11 +1,4 @@
-function [butterfly_plot] = plot_butterfly(data, params, save_path)
-
-cfg = [];
-cfg.covariance          = 'yes';
-cfg.covariancewindow    = 'prestim';
-cfg.trials = params.trials;
-timelocked = ft_timelockanalysis(cfg, data);
-save(fullfile(save_path, [params.sub '_' params.modality '_timelocked_' params.condition]), 'timelocked', '-v7.3'); 
+function [butterfly_plot] = plot_butterfly(data, timelocked, params, save_path)
 
 h = figure;
 butterfly_plot = plot(timelocked.time*1e3,timelocked.avg*params.amp_scaler);

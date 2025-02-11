@@ -11,8 +11,6 @@ cfg.channel = params.chs;
 data = ft_selectdata(cfg, data);
 
 %% Saving trigger indeces of 3 and 11 and each Std trigger before
-
-
 LowNG = [];
 preLowNG = [];
 params.trials = find(data.trialinfo==params.trigger_code(2)); % Finds index of trigger 3
@@ -30,19 +28,17 @@ for i = 1:length(params.trials)
 end
 
 %% Timelock all the params.trials so I get 4 different timelocked trials (timelock is done when it is plotted).
+% params.trials = find(data.trialinfo==params.trigger_code(1));
+% params.condition = 'Std';
+% plot_butterfly(data, params, save_path)
+
 params.trials = LowNG;
 params.condition = 'Low No Go';
-%plot_butterfly(data, params, save_path)
+timelocked = timelocked(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
 
 params.trials = preLowNG;
 params.condition = 'pre Low No Go';
-%plot_butterfly(data, params, save_path)
-
-MMN_low = [];
-MMN_low = [MMN_low; cellfun(@minus, plot_butterfly(data, params.trials(LowNG), save_path), plot_butterfly(data, params.trials(preLowNG), save_path))];
-
-params.trials = MMN_low;
-params.condition = 'MMN Low';
 plot_butterfly(data, params, save_path)
 
 params.trials = HighNG;
@@ -52,6 +48,10 @@ plot_butterfly(data, params, save_path)
 params.trials = preHighNG;
 params.condition = 'pre High No Go';
 plot_butterfly(data, params, save_path)
+
+%% MMN
+load(params.sub '_' params.modality '_timelocked_Low No Go'); % Load the low tone file
+load(params.sub '_' params.modality '_timelocked_High No Go'); % Load the Hih tone file
 
 %% Normal trigger
 params.trials = find(data.trialinfo==params.trigger_code(1));

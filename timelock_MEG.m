@@ -11,8 +11,6 @@ cfg.channel = params.chs;
 data = ft_selectdata(cfg, data);
 
 %% Saving trigger indeces of 3 and 11 and each Std trigger before
-
-
 LowNG = [];
 preLowNG = [];
 params.trials = find(data.trialinfo==params.trigger_code(2)); % Finds index of trigger 3
@@ -30,28 +28,38 @@ for i = 1:length(params.trials)
 end
 
 %% Timelock all the params.trials so I get 4 different timelocked trials (timelock is done when it is plotted).
+params.trials = find(data.trialinfo==params.trigger_code(1));
+params.condition = 'Std';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(data, timelocked, params, save_path)
+
 params.trials = LowNG;
 params.condition = 'Low No Go';
-plot_butterfly(data, params, save_path)
+timelocked = timelock(data, params, save_path);
+plot_butterfly(data, timelocked, params, save_path)
 
 params.trials = preLowNG;
 params.condition = 'pre Low No Go';
-%plot_butterfly(data, params, save_path)
-
-MMN_low = [];
-%MMN_low = [MMN_low; cellfun(@minus, )];
-
-params.trials = MMN_low;
-params.condition = 'MMN Low';
-plot_butterfly(data, params, save_path)
+timelocked = timelock(data, params, save_path);
+plot_butterfly(data, timelocked, params, save_path)
 
 params.trials = HighNG;
 params.condition = 'High No Go';
-plot_butterfly(data, params, save_path)
+timelocked = timelock(data, params, save_path);
+plot_butterfly(data, timelocked, params, save_path)
 
 params.trials = preHighNG;
 params.condition = 'pre High No Go';
-plot_butterfly(data, params, save_path)
+timelocked = timelock(data, params, save_path);
+plot_butterfly(data, timelocked, params, save_path)
+
+%% MMN
+%Low_MNN = load(params.sub '_' params.modality '_timelocked_pre Low No Go') - load(params.sub '_' params.modality '_timelocked_Low No Go'); % Load the low tone file and pre low and subtract them from each other
+butterfly_plot(Low_MNN, params, save_path)
+
+%High_MNN = load(params.sub '_' params.modality '_timelocked_High No Go'); % Load the pre High tone file
+%load(params.sub '_' params.modality '_timelocked_pre High No Go'); % Load the pre High tone file
+butterfly_plot(High_MNN, params, save_path)
 
 %% Normal trigger
 params.trials = find(data.trialinfo==params.trigger_code(1));
