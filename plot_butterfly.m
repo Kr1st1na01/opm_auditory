@@ -1,4 +1,4 @@
-function [butterfly_plot] = plot_butterfly(data, timelocked, params, save_path)
+function [butterfly_plot] = plot_butterfly(timelocked, params, save_path)
 
 h = figure;
 butterfly_plot = plot(timelocked.time*1e3,timelocked.avg*params.amp_scaler);

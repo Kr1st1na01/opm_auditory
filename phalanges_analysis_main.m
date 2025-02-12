@@ -61,9 +61,19 @@ params.trigger_labels = {'Std' 'NoGo' 'Go' 'HighNoGo' 'HighGo'}; % Normal, No-Go
 % params.oldtrigger_labels = ['Std' 'HighNoGo' 'HighGo' 'NoGo' 'Go']
 
 %% Subjects + dates
-subses = {
+subses = {'0005' '240208';
+    '0905' '240229';
+    '0916' '240320';
     '0953' '241104';
-    };
+    '1096' '241022';
+    '1153' '240321';
+    '1167' '240425';
+    '1186' '240925';
+    '1190' '241023';
+    '1191' '241024';
+    '1193' '241029';
+    '1194' '241029';
+    '1195' '241030'};
 mri_files = {'00000001.dcm' 
     '/mri/sub-15931_T1w.nii.gz'  
     '/nifti/anat/sub-15985_T1w.nii.gz'};
