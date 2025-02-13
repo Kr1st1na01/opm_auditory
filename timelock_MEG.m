@@ -28,30 +28,30 @@ for i = 1:length(params.trials)
 end
 
 %% Timelock all the params.trials so I get 4 different timelocked trials (timelock is done when it is plotted).
-% params.trials = find(data.trialinfo==params.trigger_code(1));
-% params.condition = 'Std';
-% timelocked = timelock(data, params, save_path);
-% plot_butterfly(data, timelocked, params, save_path)
-% 
-% params.trials = LowNG;
-% params.condition = 'Low No Go';
-% timelocked = timelock(data, params, save_path);
-% plot_butterfly(data, timelocked, params, save_path)
-% 
-% params.trials = preLowNG;
-% params.condition = 'pre Low No Go';
-% timelocked = timelock(data, params, save_path);
-% plot_butterfly(data, timelocked, params, save_path)
-% 
-% params.trials = HighNG;
-% params.condition = 'High No Go';
-% timelocked = timelock(data, params, save_path);
-% plot_butterfly(data, timelocked, params, save_path)
-% 
-% params.trials = preHighNG;
-% params.condition = 'pre High No Go';
-% timelocked = timelock(data, params, save_path);
-% plot_butterfly(timelocked, params, save_path)
+params.trials = find(data.trialinfo==params.trigger_code(1));
+params.condition = 'Std';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
+
+params.trials = LowNG;
+params.condition = 'Low No Go';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
+
+params.trials = preLowNG;
+params.condition = 'pre Low No Go';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
+
+params.trials = HighNG;
+params.condition = 'High No Go';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
+
+params.trials = preHighNG;
+params.condition = 'pre High No Go';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
 
 %% MMN
 params.trials = LowNG;
@@ -72,6 +72,7 @@ High_MMN_trigger.timelocked_data.avg = High_MMN_trigger.timelocked_data.avg - Hi
 plot_butterfly(High_MMN_trigger.timelocked_data, params, save_path)
 High_MMN_trigger.timelocked_data.avg = Copy;
 
+
 %% Normal trigger
 params.trials = find(data.trialinfo==params.trigger_code(1));
 params.condition = 'stdTone';
@@ -85,8 +86,9 @@ params.trials = find(ismember(data.trialinfo, params.trigger_code(4:5))); %Förs
 params.condition = 'HighTone';
 plot_butterfly(data, params, save_path)
 
-% Finding the highest peaks
-[High_pks, loc] = findpeaks(abs(High_MMN_trigger.timelocked_data), x) % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
+%Finding the highest peaks
+%[High_pks, loc] = findpeaks(abs(High_MMN_trigger.timelocked_data), x) % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
+
 
 %% Low trigger
 % Butterfly plot
