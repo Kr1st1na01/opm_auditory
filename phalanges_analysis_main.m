@@ -116,8 +116,7 @@ for i_sub = 1:size(subses,1)
         if i_sub <=3 % Change trigger codes in old recordings
             triggers = find(contains(opm_cleaned.label, 'bz'));
             for i_trl = 2:length(params.trigger_code)
-                %x =
-                %find(opm_cleaned.trialinfo==params.oldtrigger_code(i_trl));
+                opmeeg_cleaned.trialinfo(opmeeg_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl); % A(A==yourvalue)=NewValue;
                 opm_cleaned.trialinfo(opm_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl); % A(A==yourvalue)=NewValue;
             end
         end

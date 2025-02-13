@@ -29,7 +29,12 @@ end
 
 %% Timelock all the params.trials so I get 4 different timelocked trials (timelock is done when it is plotted).
 params.trials = find(data.trialinfo==params.trigger_code(1));
-params.condition = 'Std';
+params.condition = 'StdTone';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
+
+params.trials = find(ismember(data.trialinfo, params.trigger_code(2:3)));
+params.condition = 'LowTone';
 timelocked = timelock(data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
 
@@ -40,6 +45,11 @@ plot_butterfly(timelocked, params, save_path)
 
 params.trials = preLowNG;
 params.condition = 'pre Low No Go';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
+
+params.trials = find(ismember(data.trialinfo, params.trigger_code(4:5))); %Första är vid nr 17 (trigger 13)
+params.condition = 'HighTone';
 timelocked = timelock(data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
 
@@ -72,28 +82,22 @@ High_MMN_trigger.timelocked_data.avg = High_MMN_trigger.timelocked_data.avg - Hi
 plot_butterfly(High_MMN_trigger.timelocked_data, params, save_path)
 High_MMN_trigger.timelocked_data.avg = Copy;
 
+%% Find sensors with highest peaks
+% Normal trigger
 
-%% Normal trigger
-params.trials = find(data.trialinfo==params.trigger_code(1));
-params.condition = 'stdTone';
-plot_butterfly(data, params, save_path)
+% High trigger
+[~, pks_i] = max(max(abs(High_MMN_trigger.timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
+params.trials = pks_i; %     x(x(:,1)>2 & x(:,1)<6 , :)
+params.condition = 'Sensor with highest peak for high trigger';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
 
-%Std_pks = findpeaks(abs()) % Need to load in the timelocked data
-
-%% High trigger
-% Butterfly plot
-params.trials = find(ismember(data.trialinfo, params.trigger_code(4:5))); %Första är vid nr 17 (trigger 13)
-params.condition = 'HighTone';
-plot_butterfly(data, params, save_path)
-
-%Finding the highest peaks
-% [pks_v, pks_i] = max(abs(High_MMN_trigger.timelocked_data.trials)) % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
-
-%% Low trigger
-% Butterfly plot
-params.trials = find(ismember(data.trialinfo, params.trigger_code(2:3)));
-params.condition = 'LowTone';
-plot_butterfly(data, params, save_path)
+% Low trigger
+[~, pks_i] = max(max(abs(Low_MMN_trigger.timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
+params.trials = pks_i; %     x(x(:,1)>2 & x(:,1)<6 , :)
+params.condition = 'Sensor with highest peak for low trigger';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
 
 % dat = timelocked{params.trigger_code(1)}; % timelock averages the data
 % [~, interval_M100(1)] = min(abs(dat.time-0.08)); % find closest time sample
