@@ -60,6 +60,12 @@ params.trigger_labels = {'Std' 'NoGo' 'Go' 'HighNoGo' 'HighGo'}; % Normal, No-Go
 params.oldtrigger_code = [1 10 12 18 20]; % The old trigger codes
 params.oldtrigger_labels = ['Std' 'HighNoGo' 'HighGo' 'NoGo' 'Go'];
 
+%% What I should analyse
+% D = {find(data.trialinfo==params.trigger_code(1)) 'StdTone';
+%     find(ismember(data.trialinfo, params.trigger_code(2:3))) 'LowTone';
+%     find(ismember(data.trialinfo, params.trigger_code(4:5))) 'HighTone';
+%     };
+
 %% Subjects + dates
 subses = {'0005' '240208';
     '0905' '240229';
@@ -143,6 +149,12 @@ for i_sub = 1:size(subses,1)
         params.chs = '*bz';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
+%       for i_D = 1:size(D,1)
+%           % Här kallar jag på en lista som jag skrivit högre upp som
+%             subses med params.trials och conditions, så två kolumner som
+%             hör ihop
+%             opm_timelocked = timelock_MEG(opm_ica, save_path, params, D(i_D));
+%       end
         opm_timelocked = timelock_MEG(opm_ica, save_path, params);
         close all
 %%        
