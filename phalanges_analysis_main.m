@@ -55,7 +55,7 @@ params.squidgrad_std_threshold = 5e-11;
 params.hpi_freq = 33;
 
 params.trigger_code = [1 3 5 11 13];
-params.trigger_labels = {'Std' 'NoGo' 'Go' 'HighNoGo' 'HighGo'}; % Normal, No-Go, Go, High No-Go, High Go
+params.trigger_labels = {'Std' 'Low' 'High' 'Trigger before oddball for No Go' 'Oddball trigger for No go'}; % Normal, No-Go, Go, High No-Go, High Go
 
 params.oldtrigger_code = [1 10 12 18 20]; % The old trigger codes
 params.oldtrigger_labels = ['Std' 'HighNoGo' 'HighGo' 'NoGo' 'Go'];
@@ -120,7 +120,6 @@ for i_sub = 1:size(subses,1)
         [opm_cleaned, opmeeg_cleaned] = read_osMEG(opm_file, aux_file, save_path, params); % Read data
    
         if i_sub <=3 % Change trigger codes in old recordings
-            triggers = find(contains(opm_cleaned.label, 'bz'));
             for i_trl = 2:length(params.trigger_code)
                 opmeeg_cleaned.trialinfo(opmeeg_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl); % A(A==yourvalue)=NewValue;
                 opm_cleaned.trialinfo(opm_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl); % A(A==yourvalue)=NewValue;
@@ -181,7 +180,14 @@ for i_sub = 1:size(subses,1)
 
         % Read data
         [squid_cleaned, squideeg_cleaned] = read_cvMEG(meg_file, save_path, params); % Read data
-     
+        
+        if i_sub <=3 % Change trigger codes in old recordings
+            for i_trl = 2:length(params.trigger_code)
+                squideeg_cleaned.trialinfo(squideeg_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl); % A(A==yourvalue)=NewValue;
+                squid_cleaned.trialinfo(squid_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl); % A(A==yourvalue)=NewValue;
+            end
+        end
+
         % ICA
         params.modality = 'squid';
         params.layout = 'neuromag306mag.lay';
@@ -237,7 +243,7 @@ subs = 1:13;
 sensor_results_goup(base_save_path,subs, params)
 
 %% Prepare MRIs
-for i_sub = 6%7:size(subses,1)
+for i_sub = 2:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});

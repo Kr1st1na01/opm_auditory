@@ -23,73 +23,82 @@ for i = 1:length(High)
 end
 
 %% Timelock all the params.trials so I get 4 different timelocked trials (timelock is done when it is plotted).
-% params.trials = find(data.trialinfo==params.trigger_code(1));
-% params.condition = 'StdTone';
-% timelocked = timelock(data, params, save_path);
-% plot_butterfly(timelocked, params, save_path)
-% 
-% params.trials = find(ismember(data.trialinfo, params.trigger_code(2:3)));
-% params.condition = 'LowTone';
-% timelocked = timelock(data, params, save_path);
-% plot_butterfly(timelocked, params, save_path)
+params.trials = find(data.trialinfo==params.trigger_code(1));
+params.condition = 'Std';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
+freqanalysis(data, params, save_path)
 
-% params.trials = find(ismember(data.trialinfo, params.trigger_code(4:5))); %Första är vid nr 17 (trigger 13)
-% params.condition = 'HighTone';
-% timelocked = timelock(data, params, save_path);
-% plot_butterfly(timelocked, params, save_path)
+params.trials = find(ismember(data.trialinfo, params.trigger_code(2:3)));
+params.condition = 'Low';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
+freqanalysis(data, params, save_path)
+
+params.trials = find(ismember(data.trialinfo, params.trigger_code(4:5)));
+params.condition = 'High';
+timelocked = timelock(data, params, save_path);
+plot_butterfly(timelocked, params, save_path)
+freqanalysis(data, params, save_path)
 
 params.trials = preOddball;
 params.condition = 'Trigger before oddball for No Go';
 timelocked = timelock(data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
+freqanalysis(data, params, save_path)
 
 params.trials = Oddball;
 params.condition = 'Oddball trigger for No go';
 timelocked = timelock(data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
+freqanalysis(data, params, save_path)
 
 %% MMN
 % (Low No go + High No go) - (pre-Low No go + pre-High No go)
 params.trials = Oddball;
 params.condition = 'Trigger for No go vs pre-No go MMN';
 
-load([save_path '/' params.sub '_' params.modality '_timelocked_before oddball for No Go.mat']);
+load([save_path '/' params.sub '_' params.modality '_timelocked_Trigger before oddball for No Go']);
 MMN_pre = timelocked_data; % the loaded file is saved in a variable
-load([save_path '/' params.sub '_' params.modality '_timelocked_oddball for No go.mat']);
+load([save_path '/' params.sub '_' params.modality '_timelocked_Oddball trigger for No go.mat']);
 MMN = timelocked_data;
 
+MMN.filter = params.filter;
 MMN.avg = MMN.avg - MMN_pre.avg; % Here the oddball timelocked data average is changed to represent the difference (MMN) in response
 plot_butterfly(MMN, params, save_path)
 save(fullfile(save_path, [params.sub '_' params.modality '_' params.condition]), 'MMN', '-v7.3'); 
 
 %% Find sensors with highest peaks
 % Normal trigger
-load([save_path '/' params.sub '_' params.modality '_timelocked_StdTone.mat']);
+load([save_path '/' params.sub '_' params.modality '_timelocked_Std.mat']);
 [~, pks_i] = max(max(abs(timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
 params.trials = timelocked_data.avg(pks_i,:);
 params.condition = 'Sensor with highest peak for Std trigger';
 plot_butterfly(timelocked, params, save_path)
 
 % High trigger
-load([save_path '/' params.sub '_' params.modality '_timelocked_HighTone.mat']);
+load([save_path '/' params.sub '_' params.modality '_timelocked_High.mat']);
 [~, pks_i] = max(max(abs(timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
 params.trials = pks_i;
 params.condition = 'Sensor with highest peak for high trigger';
 plot_butterfly(timelocked, params, save_path)
 
 % Low trigger
-load([save_path '/' params.sub '_' params.modality '_timelocked_LowTone.mat']);
+load([save_path '/' params.sub '_' params.modality '_timelocked_Low.mat']);
 [~, pks_i] = max(max(abs(timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
 params.trials = pks_i; %     x(x(:,1)>2 & x(:,1)<6 , :)
 params.condition = 'Sensor with highest peak for low trigger';
 plot_butterfly(timelocked, params, save_path)
 
-% dat = timelocked{params.trigger_code(1)}; % timelock averages the data
+%%
+% leg = [];
+% load([save_path '/' params.sub '_' params.modality '_timelocked_StdTone.mat']);
+% dat = timelocked_data; % timelock averages the data
 % [~, interval_M100(1)] = min(abs(dat.time-0.08)); % find closest time sample
 % [~, interval_M100(2)] = min(abs(dat.time-0.125)); % find closest time sample
 % [~, interval_M100(3)] = min(abs(dat.time-0)); % find closest time sample
 % tmp = [];
-% [~, l_peak_latency] = findpeaks(mean(abs(dat.avg(:,(interval_M100(1):interval_M100(2)))),1),'SortStr','descend');
+% [~, l_peak_latency] = max((mean(abs(dat.avg(:,(interval_M100(1):interval_M100(2)))),1), SortStr='descend'), [], 2);
 % disp(l_peak_latency);
 % l_peak_latency = interval_M100(1)-1+l_peak_latency(1); % adjust for interval and pick first (=strongest) peak
 % tmp.peak_latency = dat.time(l_peak_latency);
@@ -107,7 +116,7 @@ plot_butterfly(timelocked, params, save_path)
 %         tmp.peak_amplitude = abs(tmp.min_amplitude);
 %         l_peakch = i_minch;
 % end
-
+% 
 % %[~,i_peak_latency] = max(abs(dat.avg(i_maxch,interval_M100(1):interval_M100(2))));
 % %tmp.peak_latency = dat.time(interval_M100(1)-1+i_peak_latency);
 % tmp.prestim_std = std(dat.avg(l_peakch,1:interval_M100(3)));

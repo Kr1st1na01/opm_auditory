@@ -155,9 +155,9 @@ for subNumber = subs
     chapter = Chapter('Timelocked');
     chapter.Numbered = false; % Remove chapter numbering
        
-    for i_phalange = 1:length(params.phalange_labels)
+    for i_trigger = 1:length(params.trigger_labels)
         % Add rows and cells to the table and insert the images
-        section = Section(['Phalange: ' params.phalange_labels(i_phalange)]);
+        section = Section(['Trigger: ' params.trigger_labels(i_trigger)]);
         section.Numbered = false; % Remove section numbering
         
         tbl = Table();
@@ -166,7 +166,7 @@ for subNumber = subs
             row = TableRow();
             for j = 1:2
                 imgIndex = (j-1)*2 + i;
-                img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections2{imgIndex} '_butterfly_ph-' params.phalange_labels{i_phalange} '.jpg']));
+                img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections2{imgIndex} '_butterfly_audodd-' params.trigger_labels{i_trigger} '.jpg']));
                 img.Style = {Width('8cm'), ScaleToFit};
                 entry = TableEntry();
                 append(entry, img);
@@ -181,102 +181,102 @@ for subNumber = subs
     end
     add(rpt, chapter);
 
-    %% M100 chapter
-    chapter = Chapter('M100');
-    chapter.Numbered = false; % Remove chapter numbering
-    for i_section = 1:length(sections)
-        section = Section(sections(i_section));
-        section.Numbered = false; % Remove section numbering
+%     %% M100 chapter
+%     chapter = Chapter('M100');
+%     chapter.Numbered = false; % Remove chapter numbering
+%     for i_section = 1:length(sections)
+%         section = Section(sections(i_section));
+%         section.Numbered = false; % Remove section numbering
+% 
+%         if contains(sections(i_section),'eeg')
+%             fieldMultiplier = 1e9;
+%             fieldUnit = '[nV]';
+%         else
+%             fieldMultiplier = 1e15;
+%             fieldUnit = '[fT]';
+%         end
 
-        if contains(sections(i_section),'eeg')
-            fieldMultiplier = 1e9;
-            fieldUnit = '[nV]';
-        else
-            fieldMultiplier = 1e15;
-            fieldUnit = '[fT]';
-        end
-
-        % Load the .mat file
-        data = load(fullfile(subjectFolderPath,['sub_' subStr '_' sections2{i_section} '_M100.mat']));
-        M100 = data.M100;
-        
-        % Create the table with the required data
-        num_phalanges = length(params.phalange_labels);
-        T = table('Size', [8, num_phalanges], 'VariableTypes', repmat({'double'}, 1, num_phalanges), 'VariableNames', params.phalange_labels);
-        T.Properties.RowNames = {['peak_amplitude ' fieldUnit], ['max_amplitude ' fieldUnit], ['min_amplitude ' fieldUnit], 'peak_latency [ms]', 'SNR_prestim', 'SNR_stderr', ['std_prestim ' fieldUnit], ['stderr ' fieldUnit]};
-        
-        for i_phalange = 1:num_phalanges
-            phalange_data = M100{i_phalange};
-            T{['peak_amplitude ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.peak_amplitude;
-            T{['max_amplitude ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.max_amplitude;
-            T{['min_amplitude ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.min_amplitude;
-            T{'peak_latency [ms]', params.phalange_labels{i_phalange}} = 1e3*phalange_data.peak_latency;
-            T{'SNR_prestim', params.phalange_labels{i_phalange}} = phalange_data.peak_amplitude / phalange_data.prestim_std;
-            T{'SNR_stderr', params.phalange_labels{i_phalange}} = phalange_data.peak_amplitude / phalange_data.std_error;
-            T{['std_prestim ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.prestim_std;
-            T{['stderr ' fieldUnit], params.phalange_labels{i_phalange}} = fieldMultiplier*phalange_data.std_error;
-        end
-        
-        % Convert the MATLAB table to a DOM table
-        domTable = Table();
-        domTable.Style = {Border('solid'), Width('100%'), RowSep('solid'), ColSep('solid')};
-        
-        % Add header row
-        headerRow = TableRow();
-        append(headerRow, TableEntry(' '));
-        for i_phalange = 1:num_phalanges
-            headerEntry = TableEntry(params.phalange_labels{i_phalange});
-            headerEntry.Style = {HAlign('center'), Bold()};
-            append(headerRow, headerEntry);
-        end
-        append(domTable, headerRow);
-        
-        formatString = {'%.1f','%.1f','%.1f','%.f','%.1f','%.2f','%.1f','%.1f'};
-
-        % Add data rows
-        for i_row = 1:height(T)
-            row = TableRow();
-            rowNameEntry = TableEntry(T.Properties.RowNames{i_row});
-            rowNameEntry.Style = {Bold()};
-            append(row, rowNameEntry);
-            for j = 1:num_phalanges
-                entry = TableEntry(num2str(T{i_row, j},formatString{i_row}));
-                entry.Style = {HAlign('right')}; 
-                append(row, entry);
-            end
-            append(domTable, row);
-        end
-        add(section,domTable);
-        add(chapter,section)
-    end
-
-    % Max channel plots
-    for i_phalange = 1:length(params.phalange_labels)
-        % Add rows and cells to the table and insert the images
-        section = Section(['Phalange: ' params.phalange_labels(i_phalange)]);
-        section.Numbered = false; % Remove section numbering
-        
-        tbl = Table();
-        tbl.Style = {Border('solid'), Width('100%'), RowSep('solid'), ColSep('solid')};
-        for i = 1:2
-            row = TableRow();
-            for j = 1:2
-                imgIndex = (j-1)*2 + i;
-                img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections2{imgIndex} '_evoked_peakchannel_ph' num2str(i_phalange) '.jpg']));
-                img.Style = {Width('8cm'), ScaleToFit};
-                entry = TableEntry();
-                append(entry, img);
-                append(row, entry);
-            end
-            append(tbl, row);
-        end
-    
-        add(section, tbl);
-        add(chapter, section);
-        add(chapter, PageBreak());
-    end
-
-    add(rpt, chapter);
+%         % Load the .mat file
+%         data = load(fullfile(subjectFolderPath,['sub_' subStr '_' sections2{i_section} '_M100.mat']));
+%         M100 = data.M100;
+%         
+%         % Create the table with the required data
+%         num_trigger = length(params.trigger_labels);
+%         T = table('Size', [8, num_trigger], 'VariableTypes', repmat({'double'}, 1, num_trigger), 'VariableNames', params.trigger_labels);
+%         T.Properties.RowNames = {['peak_amplitude ' fieldUnit], ['max_amplitude ' fieldUnit], ['min_amplitude ' fieldUnit], 'peak_latency [ms]', 'SNR_prestim', 'SNR_stderr', ['std_prestim ' fieldUnit], ['stderr ' fieldUnit]};
+%         
+%         for i_trigger = 1:num_trigger
+%             trigger_data = M100{i_trigger};
+%             T{['peak_amplitude ' fieldUnit], params.trigger_labels{i_trigger}} = fieldMultiplier*trigger_data.peak_amplitude;
+%             T{['max_amplitude ' fieldUnit], params.trigger_labels{i_trigger}} = fieldMultiplier*trigger_data.max_amplitude;
+%             T{['min_amplitude ' fieldUnit], params.trigger_labels{i_trigger}} = fieldMultiplier*trigger_data.min_amplitude;
+%             T{'peak_latency [ms]', params.trigger_labels{i_trigger}} = 1e3*trigger_data.peak_latency;
+%             T{'SNR_prestim', params.trigger_labels{i_trigger}} = trigger_data.peak_amplitude / trigger_data.prestim_std;
+%             T{'SNR_stderr', params.trigger_labels{i_trigger}} = trigger_data.peak_amplitude / trigger_data.std_error;
+%             T{['std_prestim ' fieldUnit], params.trigger_labels{i_trigger}} = fieldMultiplier*trigger_data.prestim_std;
+%             T{['stderr ' fieldUnit], params.trigger_labels{i_trigger}} = fieldMultiplier*trigger_data.std_error;
+%         end
+%         
+%         % Convert the MATLAB table to a DOM table
+%         domTable = Table();
+%         domTable.Style = {Border('solid'), Width('100%'), RowSep('solid'), ColSep('solid')};
+%         
+%         % Add header row
+%         headerRow = TableRow();
+%         append(headerRow, TableEntry(' '));
+%         for i_trigger = 1:num_trigger
+%             headerEntry = TableEntry(params.trigger_labels{i_trigger});
+%             headerEntry.Style = {HAlign('center'), Bold()};
+%             append(headerRow, headerEntry);
+%         end
+%         append(domTable, headerRow);
+%         
+%         formatString = {'%.1f','%.1f','%.1f','%.f','%.1f','%.2f','%.1f','%.1f'};
+% 
+%         % Add data rows
+%         for i_row = 1:height(T)
+%             row = TableRow();
+%             rowNameEntry = TableEntry(T.Properties.RowNames{i_row});
+%             rowNameEntry.Style = {Bold()};
+%             append(row, rowNameEntry);
+%             for j = 1:num_trigger
+%                 entry = TableEntry(num2str(T{i_row, j},formatString{i_row}));
+%                 entry.Style = {HAlign('right')}; 
+%                 append(row, entry);
+%             end
+%             append(domTable, row);
+%         end
+%         add(section,domTable);
+%         add(chapter,section)
+%     end
+% 
+%     % Max channel plots
+%     for i_trigger = 1:length(params.trigger_labels)
+%         % Add rows and cells to the table and insert the images
+%         section = Section(['Trigger: ' params.trigger_labels(i_trigger)]);
+%         section.Numbered = false; % Remove section numbering
+%         
+%         tbl = Table();
+%         tbl.Style = {Border('solid'), Width('100%'), RowSep('solid'), ColSep('solid')};
+%         for i = 1:2
+%             row = TableRow();
+%             for j = 1:2
+%                 imgIndex = (j-1)*2 + i;
+%                 img = Image(fullfile(subjectFolderPath,'figs',['sub_' subStr '_' sections2{imgIndex} '_evoked_peakchannel' num2str(i_trigger) '.jpg']));
+%                 img.Style = {Width('8cm'), ScaleToFit};
+%                 entry = TableEntry();
+%                 append(entry, img);
+%                 append(row, entry);
+%             end
+%             append(tbl, row);
+%         end
+%     
+%         add(section, tbl);
+%         add(chapter, section);
+%         add(chapter, PageBreak());
+%     end
+% 
+%     add(rpt, chapter);
 
     %% Close the report
     close(rpt);
