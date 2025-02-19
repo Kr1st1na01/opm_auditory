@@ -16,10 +16,12 @@ preOddball = [];
 High = find(data.trialinfo==params.trigger_code(4));
 Low = find(data.trialinfo==params.trigger_code(2)); % Finds index of trigger 3
 for i = 1:length(High)
-    preOddball = [preOddball; High(i)-1]; % Adds that preceding index
-    preOddball = [preOddball; Low(i)-1]; % Adds that preceding index
     Oddball = [Oddball; High(i)]; % Adds index of trigger 3
+    preOddball = [preOddball; High(i)-1]; % Adds that preceding index
+end
+for i = 1:length(Low)
     Oddball = [Oddball; Low(i)]; % Adds index of trigger 3
+    preOddball = [preOddball; Low(i)-1]; % Adds that preceding index
 end
 
 %% Timelock all the params.trials so I get 4 different timelocked trials (timelock is done when it is plotted).
