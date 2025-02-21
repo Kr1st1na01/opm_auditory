@@ -22,6 +22,8 @@ trl_opm(:,1) = smpl(trig)-params.pre*opm_raw.fsample;
 trl_opm(:,2) = smpl(trig)+params.post*opm_raw.fsample;
 trl_opm(:,3) = -params.pre*opm_raw.fsample;
 trl_opm(:,4) = opm_raw.trial{1}(opm_trig,smpl(trig));
+trl_opm(:,1:2) = trl_opm(:,1:2) + floor(0.01*opm_raw.fsample); % adjust for stim delay of 10 ms
+
 %clear opm_raw
 
 % AUX
@@ -37,6 +39,7 @@ trl_aux(:,1) = smpl(trig)-params.pre*aux_raw.fsample;
 trl_aux(:,2) = smpl(trig)+params.post*aux_raw.fsample;
 trl_aux(:,3) = -params.pre*aux_raw.fsample;
 trl_aux(:,4) = aux_raw.trial{1}(aux_trig,smpl(trig));
+trl_aux(:,1:2) = trl_aux(:,1:2) + floor(0.01*opm_raw.fsample); % adjust for stim delay of 10 ms
 
 % Check if uneven amount of trial. If so assume error in beginning.
 if size(trl_aux,1) > size(trl_opm,1)

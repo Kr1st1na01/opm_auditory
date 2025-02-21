@@ -18,6 +18,7 @@ trl_meg(:,1) = smpl(trig)-params.pre*squid_raw.fsample;
 trl_meg(:,2) = smpl(trig)+params.post*squid_raw.fsample;
 trl_meg(:,3) = -params.pre*squid_raw.fsample;
 trl_meg(:,4) = squid_raw.trial{1}(squid_trig,smpl(trig));
+trl_meg(:,1:2) = trl_meg(:,1:2) + floor(0.01*opm_raw.fsample); % adjust for stim delay of 10 ms
 
 %% MEG data filter & epoch
 cfg = [];
