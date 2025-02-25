@@ -1,4 +1,4 @@
-function [timelocked] = timelock_MEG(data, save_path, params) % Lägger till parameter D här i slutet
+function [timelocked] = timelock_MEG(data, save_path, params)
 
 timelocked = cell(3,1); % cell(rader, columner)
 % M100 = cell(5,1);
@@ -10,35 +10,22 @@ cfg = [];
 cfg.channel = params.chs;
 data = ft_selectdata(cfg, data);
 
-%% Saving trigger indeces of 3 and 11 and each Std trigger before
-Oddball = [];
-preOddball = [];
-High = find(data.trialinfo==params.trigger_code(4));
-Low = find(data.trialinfo==params.trigger_code(2)); % Finds index of trigger 3
-for i = 1:length(High)
-    Oddball = [Oddball; High(i)]; % Adds index of trigger 3
-    preOddball = [preOddball; High(i)-1]; % Adds that preceding index
-end
-for i = 1:length(Low)
-    Oddball = [Oddball; Low(i)]; % Adds index of trigger 3
-    preOddball = [preOddball; Low(i)-1]; % Adds that preceding index
-end
-
-%% Timelock all the params.trials so I get 4 different timelocked trials (timelock is done when it is plotted).
+%% Timelock of Std
 
 params.trials = find(data.trialinfo==params.trigger_code(1));
 params.condition = 'Std';
 timelocked = timelock(data, params, save_path);
-%plot_butterfly(timelocked, params, save_path)
+plot_butterfly(timelocked, params, save_path)
 
+% Sensor with highest peak
 load([save_path '/' params.sub '_' params.modality '_timelocked_Std.mat']);
 [~, pks_i] = max(max(abs(timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
-params.pks_i = pks_i;
-%params.trials = timelocked_data.avg(pks_i,:);
-%params.condition = 'Sensor with highest peak for Std trigger';
-%plot_butterfly(timelocked, params, save_path)
+params.trials = timelocked_data.avg(pks_i,:);
+params.condition = 'Sensor with highest peak for Std trigger';
+plot_butterfly(timelocked, params, save_path)
 
-freqanalysis(data, params, save_path)
+
+%% Timelocked of Low
 
 params.trials = find(ismember(data.trialinfo, params.trigger_code(2:3)));
 params.condition = 'Low';
@@ -46,60 +33,29 @@ timelocked = timelock(data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
 freqanalysis(data, params, save_path)
 
+% Sensor with highest peak
+load([save_path '/' params.sub '_' params.modality '_timelocked_Low.mat']);
+[~, pks_i] = max(max(abs(timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
+params.trials = pks_i; %     x(x(:,1)>2 & x(:,1)<6 , :)
+params.condition = 'Sensor with highest peak for low trigger';
+plot_butterfly(timelocked, params, save_path)
+
+%% Timelocked of High
+
 params.trials = find(ismember(data.trialinfo, params.trigger_code(4:5)));
 params.condition = 'High';
 timelocked = timelock(data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
 freqanalysis(data, params, save_path)
 
-params.trials = preOddball;
-params.condition = 'Trigger before oddball for No Go';
-timelocked = timelock(data, params, save_path);
-plot_butterfly(timelocked, params, save_path)
-freqanalysis(data, params, save_path)
-
-params.trials = Oddball;
-params.condition = 'Oddball trigger for No go';
-timelocked = timelock(data, params, save_path);
-plot_butterfly(timelocked, params, save_path)
-freqanalysis(data, params, save_path)
-
-%% MMN
-% (Low No go + High No go) - (pre-Low No go + pre-High No go)
-params.trials = Oddball;
-params.condition = 'Trigger for No go vs pre-No go MMN';
-
-load([save_path '/' params.sub '_' params.modality '_timelocked_Trigger before oddball for No Go']);
-MMN_pre = timelocked_data; % the loaded file is saved in a variable
-load([save_path '/' params.sub '_' params.modality '_timelocked_Oddball trigger for No go.mat']);
-MMN = timelocked_data;
-
-MMN.filter = params.filter;
-MMN.avg = MMN.avg - MMN_pre.avg; % Here the oddball timelocked data average is changed to represent the difference (MMN) in response
-plot_butterfly(MMN, params, save_path)
-save(fullfile(save_path, [params.sub '_' params.modality '_' params.condition]), 'MMN', '-v7.3'); 
-
-%% Find sensors with highest peaks
-% Normal trigger
-load([save_path '/' params.sub '_' params.modality '_timelocked_Std.mat']);
-[~, pks_i] = max(max(abs(timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
-params.trials = timelocked_data.avg(pks_i,:);
-params.condition = 'Sensor with highest peak for Std trigger';
-plot_butterfly(timelocked, params, save_path)
-
-% High trigger
+% Sensor with highest peak
 load([save_path '/' params.sub '_' params.modality '_timelocked_High.mat']);
 [~, pks_i] = max(max(abs(timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
 params.trials = pks_i;
 params.condition = 'Sensor with highest peak for high trigger';
 plot_butterfly(timelocked, params, save_path)
 
-% Low trigger
-load([save_path '/' params.sub '_' params.modality '_timelocked_Low.mat']);
-[~, pks_i] = max(max(abs(timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
-params.trials = pks_i; %     x(x(:,1)>2 & x(:,1)<6 , :)
-params.condition = 'Sensor with highest peak for low trigger';
-plot_butterfly(timelocked, params, save_path)
+
 
 %%
 % leg = [];

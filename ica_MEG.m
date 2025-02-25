@@ -64,7 +64,7 @@ cfg.artfctdef.ecg.cutoff  = 3;
 cfg.artfctdef.ecg.feedback = 'no';
 cfg.channel               = 'ECG';
 cfg.artfctdef.ecg.inspect = 'ECG';
-[cfg, ecg_artifact]       = ft_artifact_ecg(cfg,data);
+[~, ecg_artifact]       = ft_artifact_ecg(cfg,data);
 
 %% Create ECG-locked
 cfg = [];
@@ -316,17 +316,17 @@ if length(reject_comp)>=1
 end
 
 %%
-% cfg = [];
-% cfg.latency = [-0.03 0.3];
-% data_ica_ds = ft_selectdata(cfg, data_ica);
-% cfg = [];
-% cfg.demean = 'yes';
-% cfg.baselinewindow = [-0.03 0];
-% data_ica_ds = ft_preprocessing(cfg,data_ica_ds);
-% cfg = [];
-% cfg.resamplefs = 512;
-% data_ica_ds = ft_resampledata(cfg, data_ica_ds);
-% save(fullfile(save_path, [params.sub '_' params.modality '_ica_ds']), 'data_ica_ds',"-v7.3"); disp('done');
+cfg = [];
+cfg.latency = [-0.03 0.3];
+data_ica_ds = ft_selectdata(cfg, data_ica);
+cfg = [];
+cfg.demean = 'yes';
+cfg.baselinewindow = [-0.03 0];
+data_ica_ds = ft_preprocessing(cfg,data_ica_ds);
+cfg = [];
+cfg.resamplefs = 512;
+data_ica_ds = ft_resampledata(cfg, data_ica_ds);
+save(fullfile(save_path, [params.sub '_' params.modality '_ica_ds']), 'data_ica_ds',"-v7.3"); disp('done');
 
 close all
 end

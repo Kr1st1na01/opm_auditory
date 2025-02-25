@@ -96,7 +96,7 @@ cfg.channel     = 'all';
 cfg.method      = 'mtmconvol';
 cfg.taper       = 'dpss';             % Slepian sequence as tapers
 cfg.foi         = 1:1:45;             % Frequencies we want to estimate from 1 Hz to 45 Hz in steps of 1HZ
-cfg.toi         = -0.1:0.01:0.9;  % Times to center on
+cfg.toi         = -0:0.01:0.9;  % Times to center on
 cfg.t_ftimwin   = 5./cfg.foi;         % length of time window
 cfg.tapsmofrq   = 0.5*cfg.foi;        % Smoothing
 
@@ -121,21 +121,22 @@ cfg = [];
 cfg.channel     = 'all';
 cfg.method      = 'wavelet';
 cfg.foi         = 1:1:45;
-cfg.toi         = 0:0.01:1;
+cfg.toi         = -params.pre:0.01:params.post;
 cfg.width       = 5;                        % Number of cycles
 cfg.pad         = 'nextpow2';
 
 tfr_wavelet = ft_freqanalysis(cfg, epochs);
 
 % Plot TFR
+cfg = [];
 cfg.parameter       = 'powspctrm';
 cfg.layout          = params.layout;
 cfg.showlabels      = 'yes';
 cfg.baselinetype    = 'relative';
-cfg.baseline        = [0 inf];
+cfg.baseline        = [-0.1 0];
 
 h = figure;
-ft_multiplotER(cfg, tfr_wavelet);
+ft_multiplotTFR(cfg, tfr_wavelet);
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR wave_' params.condition '.jpg']))
 
