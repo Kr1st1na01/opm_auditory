@@ -19,7 +19,7 @@ plot_butterfly(timelocked, params, save_path)
 
 % Sensor with highest peak
 load([save_path '/' params.sub '_' params.modality '_timelocked_Std.mat']);
-[~, pks_i] = max(max(abs(timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
+[~, pks_i] = max(max(abs(timelocked_data.avg), [], 2));
 params.trials = timelocked_data.avg(pks_i,:);
 params.condition = 'Sensor with highest peak for Std trigger';
 plot_butterfly(timelocked, params, save_path)
@@ -31,12 +31,11 @@ params.trials = find(ismember(data.trialinfo, params.trigger_code(2:3)));
 params.condition = 'Low';
 timelocked = timelock(data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
-freqanalysis(data, params, save_path)
 
 % Sensor with highest peak
 load([save_path '/' params.sub '_' params.modality '_timelocked_Low.mat']);
-[~, pks_i] = max(max(abs(timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
-params.trials = pks_i; %     x(x(:,1)>2 & x(:,1)<6 , :)
+[~, pks_i] = max(max(abs(timelocked_data.avg), [], 2));
+params.trials = pks_i; 
 params.condition = 'Sensor with highest peak for low trigger';
 plot_butterfly(timelocked, params, save_path)
 
@@ -46,11 +45,10 @@ params.trials = find(ismember(data.trialinfo, params.trigger_code(4:5)));
 params.condition = 'High';
 timelocked = timelock(data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
-freqanalysis(data, params, save_path)
 
 % Sensor with highest peak
 load([save_path '/' params.sub '_' params.modality '_timelocked_High.mat']);
-[~, pks_i] = max(max(abs(timelocked_data.avg), [], 2)); % Om jag bara skriver allt efter '=' så visas peaksen. x är location, borde ha data på sensorerna som jag skriver in istället
+[~, pks_i] = max(max(abs(timelocked_data.avg), [], 2));
 params.trials = pks_i;
 params.condition = 'Sensor with highest peak for high trigger';
 plot_butterfly(timelocked, params, save_path)

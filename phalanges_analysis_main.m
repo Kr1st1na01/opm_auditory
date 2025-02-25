@@ -41,7 +41,7 @@ params.pre = 0.3; %sec
 params.post = 0.9; %sec
 params.filter = [];
 params.filter.hp_freq = 3;
-params.filter.lp_freq = 50; % 50 for StdTone, HighTone and LowTone. 40 for MMN
+params.filter.lp_freq = 50;
 params.filter.bp_freq = [];
 params.filter.notch = sort([50 60]);
 params.n_comp = 40;
@@ -70,14 +70,6 @@ subses = {'0005' '240208';
     '1167' '240425';
     '1186' '240925';
     '1190' '241023'; 
-    %{ 
-Error using ft_read_header
-file or directory '/archive/24110_opm_auditory/MEG/NatMEG_1190/241023/meg/AudOddMEG_proc-tsss+corr98.fif' does not
-exist
-
-Error in ft_preprocessing (line 392)
-  hdr = ft_read_header(cfg.headerfile, headeropt{:});
- %}
     '1191' '241024';
     '1193' '241029';
     '1194' '241029';
@@ -101,9 +93,6 @@ for i_sub = 1:size(subses,1)
        mkdir(fullfile(save_path,'figs'))
     end
     meg_file = fullfile(raw_path, 'meg', 'AudOddMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
-    if i_sub == 9
-        meg_file = fullfile(raw_path, 'meg', 'AudOddMEG_proc-tsss+corr98.fif');
-    end
     opm_file = fullfile(raw_path, 'osmeg', 'AudOddOPM_raw.fif');
     aux_file = fullfile(raw_path, 'meg', 'AudOddEEG.fif');
     hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
@@ -170,40 +159,48 @@ for i_sub = 1:size(subses,1)
         params.modality = 'squideeg';
         squideeg_ica = ica_MEG(squideeg_cleaned, save_path, params);
 
-        % Filter data for ERF/ERP (cropped data with lp 40 Hz)
+%% MMN och TFR (borde kunna göra en for-loop eller liknande och korta ner koden).
+        % MMN görs först = cropped data, och TFR görs sen
         cfg = [];
         cfg.lpfilter  = 'yes';        % Apply lowpass filter
-        cfg.lpfreq    = 40;      
+        cfg.lpfreq    = 20;      
         cfg.demean          = 'yes';
-        cfg.baselinewindow  = [-0.200 0];
-        cfg.toilim = [-0.100 1];
+        cfg.baselinewindow  = [-0.100 0];
+        cfg.toilim = [-0.100 0.5];
         
-        filt_downsampled_data = ft_preprocessing(cfg, opm_ica); % Data is processed with a lowpass filter of 40 Hz
-        cropped_data = ft_redefinetrial(cfg, filt_downsampled_data); % Trials are cropped into time of interest (toi)
-        cropped_data_opm = ft_preprocessing(cfg, cropped_data); % The cropped data is averaged and baseline corrected to 0.
-        save(fullfile(save_path, [params.sub '_' params.modality '_cropped_ica']), 'cropped_data_opm',"-v7.3");
+        params.ica = [opm_ica, opmeeg_ica, squidmag_ica, squideeg_ica];
+        params.ica_labels = {'opm', 'opmeeg', 'squidmag', 'squideeg'};
+        
+        for i = 1:length(params.ica)
+            cfg = [];
+            cfg.lpfilter  = 'yes';        % Apply lowpass filter
+            cfg.lpfreq    = 20;      
+            cfg.demean          = 'yes';
+            cfg.baselinewindow  = [-0.100 0];
+            cfg.toilim = [-0.100 0.5];
+            
+            filt_downsampled_data = ft_preprocessing(cfg, params.ica(i)); % Data is processed with a lowpass filter of 40 Hz
+            cropped_data = ft_redefinetrial(cfg, filt_downsampled_data); % Trials are cropped into time of interest (toi)
+            save(fullfile(save_path, [params.sub '_' params.ica_labels{i} '_cropped_ica']), 'cropped_data',"-v7.3");
 
-        filt_downsampled_data = ft_preprocessing(cfg, opmeeg_ica); % Data is processed with a lowpass filter of 40 Hz
-        cropped_data = ft_redefinetrial(cfg, filt_downsampled_data); % Trials are cropped into time of interest (toi)
-        cropped_data_opmeeg = ft_preprocessing(cfg, cropped_data); % The cropped data is averaged and baseline corrected to 0.
-        save(fullfile(save_path, [params.sub '_' params.modality '_cropped_ica']), 'cropped_data_opmeeg',"-v7.3");
+            cfg = [];
+            cfg.hpfilter  = 'yes';        
+            cfg.hpfreq    = 30;      % Apply highpass filter
+            cfg.demean          = 'yes';
+            cfg.baselinewindow  = [-0.100 0];
 
-        filt_downsampled_data = ft_preprocessing(cfg, squidmag_ica); % Data is processed with a lowpass filter of 40 Hz
-        cropped_data = ft_redefinetrial(cfg, filt_downsampled_data); % Trials are cropped into time of interest (toi)
-        cropped_data_squid = ft_preprocessing(cfg, cropped_data); % The cropped data is averaged and baseline corrected to 0.
-        save(fullfile(save_path, [params.sub '_' params.modality '_cropped_ica']), 'cropped_data_squid',"-v7.3");
-
-        filt_downsampled_data = ft_preprocessing(cfg, squideeg_ica); % Data is processed with a lowpass filter of 40 Hz
-        cropped_data = ft_redefinetrial(cfg, filt_downsampled_data); % Trials are cropped into time of interest (toi)
-        cropped_data_squideeg = ft_preprocessing(cfg, cropped_data); % The cropped data is averaged and baseline corrected to 0.
-        save(fullfile(save_path, [params.sub '_' params.modality '_cropped_ica']), 'cropped_data_squideeg',"-v7.3");
+            TFR_data = ft_preprocessing(cfg, params.ica(i)); % Data is processed with a lowpass filter of 40 Hz
+            save(fullfile(save_path, [params.sub '_' params.ica_labels{i} '_TFR_ica']), 'TFR_data',"-v7.3");
+        end
         close all
     end
 end
-%% Loop over subjects
 
-for i_sub = 1:size(subses,1)
+%% Loop over subjects for timelocking
+
+for i_sub = 10 %1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
+
         %% Overwrite for timelock osv osv
     if exist(fullfile(save_path, [params.sub '_opmeeg_timelocked.mat']),'file') && overwrite.preproc==false % om filerna existerar så sker inte en overwrite och filerna laddas in
         load(fullfile(save_path, [params.sub '_opm_timelocked.mat']))
@@ -222,14 +219,25 @@ for i_sub = 1:size(subses,1)
         
         ft_hastoolbox('mne', 1);
 
+        % Load data
+        load(fullfile(save_path, [params.sub '_opm_cropped_ica.mat']))
+        MMN_opm = cropped_data;
+        load(fullfile(save_path, [params.sub '_opm_TFR_ica.mat']))
+        TFR_opm = TFR_data;
+        
+        clear cropped_data
+        clear TFR_data
+
+
         %% Average for OPM-MEG
+              
         params.modality = 'opm';
         params.layout = 'fieldlinebeta2bz_helmet.mat';
         params.chs = '*bz';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-        opm_timelocked = timelock_MEG(opm_ica, save_path, params); % Den här gör med lång data
-        TFR(cropped_data_opm, params, save_path); % Den här gör TFR och MMN med cropped data
+        MMN(MMN_opm, save_path, params); % Vi använder kort data för att göra MMN
+        TFR(TFR_opm, params, save_path); % 
         close all
         
         params.modality = 'opmeeg';
