@@ -16,7 +16,7 @@ for i = 1:length(Low)
     preOddball = [preOddball; Low(i)-1]; % Adds that preceding index
 end
 
-%% Timelocking
+%% Timelocking data
 
 params.trials = preOddball;
 params.condition = 'Trigger before oddball for No Go';
@@ -33,7 +33,7 @@ plot_butterfly(timelocked, params, save_path)
 params.trials = Oddball;
 params.condition = 'Trigger for No go vs pre-No go MMN';
 
-load([save_path '/' params.sub '_' params.modality '_timelocked_Trigger before oddball for No Go']);
+load([save_path '/' params.sub '_' params.modality '_timelocked_Trigger before oddball for No Go.mat']);
 MMN_pre = timelocked_data; % the loaded file is saved in a variable
 load([save_path '/' params.sub '_' params.modality '_timelocked_Oddball trigger for No go.mat']);
 MMN = timelocked_data;

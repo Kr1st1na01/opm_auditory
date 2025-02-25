@@ -57,8 +57,8 @@ params.hpi_freq = 33;
 params.trigger_code = [1 3 5 11 13];
 params.trigger_labels = {'Std' 'Low' 'High' 'Trigger before oddball for No Go' 'Oddball trigger for No go'}; % Normal, No-Go, Go, High No-Go, High Go
 
-params.oldtrigger_code = [1 10 12 18 20]; % The old trigger codes
-params.oldtrigger_labels = ['Std' 'HighNoGo' 'HighGo' 'NoGo' 'Go'];
+params.oldtrigger_code = [1 18 20 10 12]; % The old trigger codes
+params.oldtrigger_labels = ['Std' 'NoGo' 'Go' 'HighNoG0o' 'HighGo'];
 
 %% Subjects + dates
 subses = {'0005' '240208';
@@ -121,7 +121,7 @@ for i_sub = 1:size(subses,1)
 
         if i_sub <=3 % Change trigger codes in old recordings
             for i_trl = 2:length(params.trigger_code)
-                opmeeg_cleaned.trialinfo(opmeeg_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl); % A(A==yourvalue)=NewValue;
+                opmeeg_cleaned.trialinfo(opmeeg_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl+2); % A(A==yourvalue)=NewValue;
                 opm_cleaned.trialinfo(opm_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl);
                 squideeg_cleaned.trialinfo(squideeg_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl); 
                 squid_cleaned.trialinfo(squid_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl);
@@ -236,7 +236,7 @@ for i_sub = 10 %1:size(subses,1)
         params.chs = '*bz';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-        MMN(MMN_opm, save_path, params); % Vi använder kort data för att göra MMN
+        MMN(MMN_opm, params, save_path); % Vi använder kort data för att göra MMN
         TFR(TFR_opm, params, save_path); % 
         close all
         
