@@ -55,7 +55,7 @@ params.squidgrad_std_threshold = 5e-11;
 params.hpi_freq = 33;
 
 params.trigger_code = [1 3 5 11 13];
-params.trigger_labels = {'Std' 'Low' 'High' 'Trigger before oddball for No Go' 'Oddball trigger for No go'}; % Normal, No-Go, Go, High No-Go, High Go
+params.trigger_labels = {'Std' 'Low NG' 'Low Go' 'High NG' 'High Go'}; % Normal, No-Go, Go, High No-Go, High Go
 
 params.oldtrigger_code = [1 18 20 10 12]; % The old trigger codes
 params.oldtrigger_labels = ['Std' 'NoGo' 'Go' 'HighNoG0o' 'HighGo'];
@@ -121,13 +121,14 @@ for i_sub = 1:size(subses,1)
 
         if i_sub <=3 % Change trigger codes in old recordings
             for i_trl = 2:length(params.trigger_code)
-                opmeeg_cleaned.trialinfo(opmeeg_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl+2); % A(A==yourvalue)=NewValue;
+                opmeeg_cleaned.trialinfo(opmeeg_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl); % A(A==yourvalue)=NewValue;
                 opm_cleaned.trialinfo(opm_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl);
                 squideeg_cleaned.trialinfo(squideeg_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl); 
                 squid_cleaned.trialinfo(squid_cleaned.trialinfo==params.oldtrigger_code(i_trl)) = params.trigger_code(i_trl);
             end
         end
- 
+ clear i_trl
+
      %% ICA
         % ICA OPM
         params.modality = 'opm';
@@ -159,8 +160,8 @@ for i_sub = 1:size(subses,1)
         params.modality = 'squideeg';
         squideeg_ica = ica_MEG(squideeg_cleaned, save_path, params);
 
-%% MMN och TFR (borde kunna göra en for-loop eller liknande och korta ner koden).
-        % MMN görs först = cropped data, och TFR görs sen
+%% Dividing data for MMN och TFR
+        % MMN data is generated first (= cropped data) and TFR data is generated after
         cfg = [];
         cfg.lpfilter  = 'yes';        % Apply lowpass filter
         cfg.lpfreq    = 20;      
@@ -198,7 +199,7 @@ end
 
 %% Loop over subjects for timelocking
 
-for i_sub = 10 %1:size(subses,1)
+for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
 
         %% Overwrite for timelock osv osv
@@ -236,8 +237,10 @@ for i_sub = 10 %1:size(subses,1)
         params.chs = '*bz';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-        MMN(MMN_opm, params, save_path); % Vi använder kort data för att göra MMN
-        TFR(TFR_opm, params, save_path); % 
+        pks = timelock_MEG(MMN_opm, params, save_path); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
+        close all
+        %MMN(MMN_opm, params, save_path); % The cropped data is used
+        freqanalysis(TFR_opm, params, pks, save_path); % TFR data is used
         close all
         
         params.modality = 'opmeeg';

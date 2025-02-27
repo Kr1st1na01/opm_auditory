@@ -1,7 +1,13 @@
 function [] = MMN(data, params, save_path)
 % Här gör vi MMN
 
-%% Saving trigger indeces of 3 and 11 and each Std trigger before
+cfg = [];
+cfg.channel = params.chs;
+data = ft_selectdata(cfg, data);
+
+%% Saving trigger indeces
+% High NG
+% Low NG
 Oddball = [];
 preOddball = [];
 High = find(data.trialinfo==params.trigger_code(4));
@@ -17,11 +23,10 @@ for i = 1:length(Low)
 end
 
 %% Timelocking data
-
 params.trials = preOddball;
-params.condition = 'Trigger before oddball for No Go';
-timelocked = timelock(data, params, save_path);
-plot_butterfly(timelocked, params, save_path)
+params.condition = 'Pre-oddball trigger for No Go';
+timelocked_pre = timelock(data, params, save_path);
+plot_butterfly(timelocked_pre, params, save_path)
 
 params.trials = Oddball;
 params.condition = 'Oddball trigger for No go';
@@ -31,17 +36,11 @@ plot_butterfly(timelocked, params, save_path)
 %% MMN
 % (Low No go + High No go) - (pre-Low No go + pre-High No go)
 params.trials = Oddball;
-params.condition = 'Trigger for No go vs pre-No go MMN';
+params.condition = 'Trigger for No go vs pre-No go';
 
-load([save_path '/' params.sub '_' params.modality '_timelocked_Trigger before oddball for No Go.mat']);
-MMN_pre = timelocked_data; % the loaded file is saved in a variable
-load([save_path '/' params.sub '_' params.modality '_timelocked_Oddball trigger for No go.mat']);
-MMN = timelocked_data;
-
-MMN.filter = params.filter;
-MMN.avg = MMN.avg - MMN_pre.avg; % Here the oddball timelocked data average is changed to represent the difference (MMN) in response
-plot_butterfly(MMN, params, save_path)
-save(fullfile(save_path, [params.sub '_' params.modality '_' params.condition]), 'MMN', '-v7.3'); 
+timelocked.avg = timelocked.avg - timelocked_pre.avg; % Here the oddball timelocked data average is changed to represent the difference (MMN) in response
+plot_butterfly(timelocked, params, save_path)
+save(fullfile(save_path, [params.sub '_' params.modality '_' params.condition]), 'timelocked', '-v7.3'); 
 
 
 end
