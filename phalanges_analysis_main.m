@@ -39,8 +39,9 @@ overwrite.mne = true;
 params = [];
 params.pre = 0.3; %sec
 params.post = 0.9; %sec
+params.pad = 0.2; %sec
 params.filter = [];
-params.filter.hp_freq = 3;
+params.filter.hp_freq = 1;
 params.filter.lp_freq = 50;
 params.filter.bp_freq = [];
 params.filter.notch = sort([50 60]);
@@ -106,7 +107,7 @@ for i_sub = 1:size(subses,1)
        load(fullfile(save_path, [params.sub '_opmeeg_ica.mat']))
        opmeeg_ica = data_ica_ds;
        %SQUID-MEG
-       load(fullfile(save_path, [params.sub '_squidmag_ica.mat']))
+       load(fullfile(save_path, [params.sub '_squid_ica.mat']))
        squidmag_ica = data_ica_ds;
        load(fullfile(save_path, [params.sub '_squideeg_ica.mat']))        
        squideeg_ica = data_ica_ds;
@@ -114,7 +115,7 @@ for i_sub = 1:size(subses,1)
     else
     
         ft_hastoolbox('mne', 1);
-
+ 
         % Read data
         [opm_cleaned, opmeeg_cleaned] = read_osMEG(opm_file, aux_file, save_path, params); % Read data
         [squid_cleaned, squideeg_cleaned] = read_cvMEG(meg_file, save_path, params); % Read data
@@ -149,7 +150,7 @@ for i_sub = 1:size(subses,1)
         params.modality = 'squid';
         params.layout = 'neuromag306mag.lay';
         params.chs = 'MEG*';
-        squidmag_ica = ica_MEG(squid_cleaned, save_path, params);
+        squid_ica = ica_MEG(squid_cleaned, save_path, params); % Both mag and grad
 
         cfg = [];
         cfg.elec = squideeg_cleaned.elec;
@@ -169,8 +170,8 @@ for i_sub = 1:size(subses,1)
         cfg.baselinewindow  = [-0.100 0];
         cfg.toilim = [-0.100 0.5];
         
-        params.ica = [opm_ica, opmeeg_ica, squidmag_ica, squideeg_ica];
-        params.ica_labels = {'opm', 'opmeeg', 'squidmag', 'squideeg'};
+        params.ica = [opm_ica, opmeeg_ica, squid_ica, squideeg_ica];
+        params.ica_labels = {'opm', 'opmeeg', 'squid', 'squideeg'};
         
         for i = 1:length(params.ica)
             cfg = [];
@@ -201,8 +202,23 @@ end
 
 for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
+    
+    %% Paths
+    raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    save_path = fullfile(base_save_path,params.sub);
+    mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
+    if ~exist(save_path, 'dir')
+       mkdir(base_save_path)
+    end
+    if ~exist(fullfile(save_path,'figs'), 'dir')
+       mkdir(fullfile(save_path,'figs'))
+    end
+    meg_file = fullfile(raw_path, 'meg', 'AudOddMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
+    opm_file = fullfile(raw_path, 'osmeg', 'AudOddOPM_raw.fif');
+    aux_file = fullfile(raw_path, 'meg', 'AudOddEEG.fif');
+    hpi_file = fullfile(raw_path, 'osmeg', 'HPIpre_raw.fif');
 
-        %% Overwrite for timelock osv osv
+        %% Overwrite for timelock 
     if exist(fullfile(save_path, [params.sub '_opmeeg_timelocked.mat']),'file') && overwrite.preproc==false % om filerna existerar så sker inte en overwrite och filerna laddas in
         load(fullfile(save_path, [params.sub '_opm_timelocked.mat']))
         opm_timelocked = timelocked;
@@ -219,15 +235,37 @@ for i_sub = 1:size(subses,1)
     else
         
         ft_hastoolbox('mne', 1);
-
+       
         % Load data
         load(fullfile(save_path, [params.sub '_opm_cropped_ica.mat']))
         MMN_opm = cropped_data;
         load(fullfile(save_path, [params.sub '_opm_TFR_ica.mat']))
         TFR_opm = TFR_data;
-        
+
+        load(fullfile(save_path, [params.sub '_opmeeg_cropped_ica.mat']))
+        MMN_opmeeg = cropped_data;
+        load(fullfile(save_path, [params.sub '_opmeeg_TFR_ica.mat']))
+        TFR_opmeeg = TFR_data;
+    
+        load(fullfile(save_path, [params.sub '_squidmag_cropped_ica.mat']))
+        MMN_squidmag = cropped_data;
+        load(fullfile(save_path, [params.sub '_squidmag_TFR_ica.mat']))
+        TFR_squidmag = TFR_data;
+
+        load(fullfile(save_path, [params.sub '_squidgrad_cropped_ica.mat']))
+        MMN_squidgrad = cropped_data;
+        load(fullfile(save_path, [params.sub '_squidgrad_TFR_ica.mat']))
+        TFR_squidgrad = TFR_data;
+
+        load(fullfile(save_path, [params.sub '_squideeg_cropped_ica.mat']))
+        MMN_squideeg = cropped_data;
+        load(fullfile(save_path, [params.sub '_squideeg_TFR_ica.mat']))
+        TFR_squideeg = TFR_data;
+
+
         clear cropped_data
         clear TFR_data
+        clear labels
 
 
         %% Average for OPM-MEG
@@ -237,19 +275,17 @@ for i_sub = 1:size(subses,1)
         params.chs = '*bz';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-        pks = timelock_MEG(MMN_opm, params, save_path); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
-        close all
-        %MMN(MMN_opm, params, save_path); % The cropped data is used
-        freqanalysis(TFR_opm, params, pks, save_path); % TFR data is used
-        close all
-        
+        opm_timelocked = timelock_MEG(MMN_opm, TFR_opm, params, save_path); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
+        MMN(MMN_opm, TFR_opm, params, save_path); % The MMN is done on cropped data and TFR is for the frequency analysis
+        close all        
+
         params.modality = 'opmeeg';
         params.layout = opmeeg_layout;
         params.chs = 'EEG*';
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
-        opmeeg_timelocked = timelock_MEG(opmeeg_ica, save_path, params);
-        TFR(cropped_data_opmeeg, params, save_path);
+        opmeeg_timelocked = timelock_MEG(MMN_opmeeg, TFR_opmeeg, params, save_path); 
+        MMN(MMN_opmeeg, TFR_opmeeg, params, save_path);
         close all
 
         %% Average SQUID-MEG
@@ -258,8 +294,8 @@ for i_sub = 1:size(subses,1)
         params.chs = 'megmag';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-        squidmag_timelocked = timelock_MEG(squid_ica, save_path, params);
-        TFR(cropped_data_squid, params, save_path);
+        squidmag_timelocked = timelock_MEG(MMN_squid, TFR_squid, params, save_path); 
+        MMN(MMN_squid, TFR_squid, params, save_path);
         close all
 
         params.modality = 'squidgrad';
@@ -267,8 +303,8 @@ for i_sub = 1:size(subses,1)
         params.chs = 'megplanar';
         params.amp_scaler = 1e15/100;
         params.amp_label = 'B [fT/cm]';
-        squidgrad_timelocked = timelock_MEG(squid_ica, save_path, params);
-        TFR(cropped_data_squid, params, save_path);
+        squidgrad_timelocked = timelock_MEG(MMN_squid, TFR_squid, params, save_path); 
+        MMN(MMN_squid, TFR_squid, params, save_path);
         close all
 
         params.modality = 'squideeg';
@@ -276,14 +312,15 @@ for i_sub = 1:size(subses,1)
         params.chs = 'EEG*';
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
-        squideeg_timelocked = timelock_MEG(squideeg_ica, save_path, params);
-        TFR(cropped_data_squideeg, params, save_path);
+        squideeg_timelocked = timelock_MEG(MMN_squideeg, TFR_squideeg, params, save_path); 
+        MMN(MMN_squideeg, TFR_squideeg, params, save_path);
         close all
     end
 
-    params = rmfield(params,{'modality', 'layout', 'chs', 'amp_scaler', 'amp_label'}); % remove fields used for picking modality
-    create_bads_reports(base_save_path, i_sub, params);
-    close all
+
+%     params = rmfield(params,{'modality', 'layout', 'chs', 'amp_scaler', 'amp_label'}); % remove fields used for picking modality
+%     create_bads_reports(base_save_path, i_sub, params);
+%     close all
 end
 
 %% --- Group sensor level -------------------------------------------------

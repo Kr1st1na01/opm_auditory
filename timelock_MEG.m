@@ -1,4 +1,4 @@
-function [pks] = timelock_MEG(MMN_data, params, save_path)
+function [timelocked] = timelock_MEG(MMN_data, TFR_data, params, save_path)
 % Here we timelock the Std, high and low triggers and find the sensor with
 % the highest peak for each one.
 
@@ -10,13 +10,12 @@ function [pks] = timelock_MEG(MMN_data, params, save_path)
 % leg = [];   
 
 % % Det borde vara rätt channel 
-pks = [];
 cfg = [];
 cfg.channel = params.chs;
 MMN_data = ft_selectdata(cfg, MMN_data);
+TFR_data = ft_selectdata(cfg, TFR_data);
 
 %% Timelock of Std
-
 params.trials = find(MMN_data.trialinfo==params.trigger_code(1));
 params.condition = 'Std';
 timelocked = timelock(MMN_data, params, save_path);
@@ -24,24 +23,13 @@ plot_butterfly(timelocked, params, save_path)
 
 % Sensor with highest peak
 [~, pks_i] = max(max(abs(timelocked.avg), [], 2)); % 2 indicates the max value of rows, max returns the column vector containing the max value of each row, therefore a second max
-pks = [pks; pks_i];
 timelocked.avg = timelocked.avg(pks_i,:);
 params.condition = 'Sensor with highest peak for Std trigger';
 plot_butterfly(timelocked, params, save_path)
+freqanalysis(TFR_data, params, pks, save_path)
 
 
 %% Timelocked of Low
-% Find peaks
-params.trials = find(MMN_data.trialinfo==params.trigger_code(2));
-timelocked = timelock(MMN_data, params, save_path);
-[~, pks_i] = max(max(abs(timelocked.avg), [], 2));
-pks = [pks; pks_i];
-
-params.trials = find(MMN_data.trialinfo==params.trigger_code(3));
-timelocked = timelock(MMN_data, params, save_path);
-[~, pks_i] = max(max(abs(timelocked.avg), [], 2));
-pks = [pks; pks_i];
-
 % Plot both low triggers
 params.trials = find(ismember(MMN_data.trialinfo, params.trigger_code(2:3)));
 params.condition = 'Low';
@@ -55,17 +43,6 @@ params.condition = 'Sensor with highest peak for low trigger';
 plot_butterfly(timelocked, params, save_path)
 
 %% Timelocked of High
-% Find peaks
-params.trials = find(MMN_data.trialinfo==params.trigger_code(4));
-timelocked = timelock(MMN_data, params, save_path);
-[~, pks_i] = max(max(abs(timelocked.avg), [], 2));
-pks = [pks; pks_i];
-
-params.trials = find(MMN_data.trialinfo==params.trigger_code(5));
-timelocked = timelock(MMN_data, params, save_path);
-[~, pks_i] = max(max(abs(timelocked.avg), [], 2));
-pks = [pks; pks_i];
-
 % Plot both high triggers
 params.trials = find(ismember(MMN_data.trialinfo, params.trigger_code(4:5)));
 params.condition = 'High';
@@ -78,8 +55,37 @@ timelocked.avg = timelocked.avg(pks_i,:);
 params.condition = 'Sensor with highest peak for high trigger';
 plot_butterfly(timelocked, params, save_path)
 
+%% NG and G
+NG = [];
+G = [];
+NGL = find(data.trialinfo==params.trigger_code(2));
+NGH = find(data.trialinfo==params.trigger_code(4)); % Finds index of trigger 3
 
+GL = find(data.trialinfo==params.trigger_code(3));
+GH = find(data.trialinfo==params.trigger_code(5)); % Finds index of trigger 3
 
+for i = 1:length(NGL)
+    NG = [NG; NGL(i)]; % Adds index of trigger 3
+    NG = [NGH; NGH(i)]; % Adds that preceding index
+end
+for i = 1:length(GL)
+    G = [G; NGL(i)]; % Adds index of trigger 3
+    G = [G; NGH(i)]; % Adds that preceding index
+end
+
+params.trials = NG;
+params.condition = 'No Go trigger';
+timelocked_NG = timelock(TFR_data, params, save_path);
+plot_butterfly(timelocked_NG, params, save_path)
+[~, pks_i] = max(max(abs(timelocked_pre.avg), [], 2)); % 2 indicates the max value of rows, max returns the column vector containing the max value of each row, therefore a second max
+freqanalysis(TFR, params, pks_i, save_path)
+
+params.trials = G;
+params.condition = 'Go trigger';
+timelocked_G = timelock(TFR_data, params, save_path);
+plot_butterfly(timelocked_G, params, save_path)
+[~, pks_i] = max(max(abs(timelocked_pre.avg), [], 2)); % 2 indicates the max value of rows, max returns the column vector containing the max value of each row, therefore a second max
+freqanalysis(TFR, params, pks_i, save_path)
 
 
 %%

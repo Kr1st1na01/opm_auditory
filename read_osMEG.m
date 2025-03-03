@@ -130,13 +130,14 @@ cfg.channel = comb.label(find(~contains(comb.label,'eeg')));
 opm_cleaned = ft_selectdata(cfg, comb);
 
 % Reject bad channels
-cfg = [];
-cfg.trl = trl_opm;
-opm_raw_epo = ft_redefinetrial(cfg,opm_raw);
+% cfg = [];
+% cfg.trl = trl_opm;
+% opm_raw_epo = ft_redefinetrial(cfg,opm_raw);
 cfg = [];
 cfg.z_threshold = params.z_threshold;
 cfg.corr_threshold = params.corr_threshold;
-[badchs_opm, badchs_opm_flat, badchs_opm_neighbors, badchs_opm_zmax, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw_epo);
+cfg.trl = trl_opm;
+[badchs_opm, badchs_opm_flat, badchs_opm_neighbors, badchs_opm_zmax, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw);
 cfg = [];
 cfg.channel = setdiff(opm_cleaned.label,badchs_opm);
 cfg.trials  = setdiff(1:length(opm_cleaned.trial),badtrl_opm_zmax); % remove bad trials
@@ -179,13 +180,14 @@ cfg.channel = comb.label(find(~contains(comb.label,'bz')));
 opmeeg_cleaned = ft_selectdata(cfg, comb);
 
 % Reject bad channels
+% cfg = [];
+% cfg.trl = trl_aux;
+% aux_raw_epo = ft_redefinetrial(cfg,aux_raw);
 cfg = [];
 cfg.trl = trl_aux;
-aux_raw_epo = ft_redefinetrial(cfg,aux_raw);
-cfg = [];
 cfg.z_threshold = params.z_threshold;
 cfg.corr_threshold = params.corr_threshold;
-[badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors, badchs_opmeeg_zmax, badtrl_opmeeg_zmax] = eeg_badchannels(cfg,aux_raw_epo);
+[badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors, badtrl_opmeeg_zmax] = eeg_badchannels(cfg,aux_raw);
 cfg = [];
 cfg.channel = setdiff(opmeeg_cleaned.label,badchs_opmeeg);
 cfg.trials  = setdiff(1:length(opmeeg_cleaned.trial),badtrl_opmeeg_zmax); % remove bad trials
@@ -220,7 +222,7 @@ save(fullfile(save_path, [params.sub '_opm_badchs']), ...
 save(fullfile(save_path, [params.sub '_opmeeg_badchs']), ...
     'badchs_opmeeg_flat', ...
     'badchs_opmeeg_neighbors', ...
-    'badchs_opmeeg_zmax' ,"-v7.3"); 
+    "-v7.3"); 
 
 [~,idx]=ismember(opm_cleaned.sampleinfo,badtrl_opm_jump,'rows');
 badtrl_opm_jump = find(idx);

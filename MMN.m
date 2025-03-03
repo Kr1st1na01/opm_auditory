@@ -1,4 +1,4 @@
-function [] = MMN(data, params, save_path)
+function [] = MMN(data, TFR, params, save_path)
 % Här gör vi MMN
 
 cfg = [];
@@ -27,11 +27,15 @@ params.trials = preOddball;
 params.condition = 'Pre-oddball trigger for No Go';
 timelocked_pre = timelock(data, params, save_path);
 plot_butterfly(timelocked_pre, params, save_path)
+[~, pks_i] = max(max(abs(timelocked_pre.avg), [], 2)); % 2 indicates the max value of rows, max returns the column vector containing the max value of each row, therefore a second max
+freqanalysis(TFR, params, pks_i, save_path)
 
 params.trials = Oddball;
 params.condition = 'Oddball trigger for No go';
 timelocked = timelock(data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
+[~, pks_i] = max(max(abs(timelocked_pre.avg), [], 2)); % 2 indicates the max value of rows, max returns the column vector containing the max value of each row, therefore a second max
+freqanalysis(TFR, params, pks_i, save_path)
 
 %% MMN
 % (Low No go + High No go) - (pre-Low No go + pre-High No go)
