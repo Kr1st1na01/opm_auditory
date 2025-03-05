@@ -265,7 +265,6 @@ for i_sub = 1:size(subses,1)
 
 
         %% Average for OPM-MEG
-              
         params.modality = 'opm';
         params.layout = 'fieldlinebeta2bz_helmet.mat';
         params.chs = '*bz';

@@ -55,14 +55,35 @@ tmp = [];
 [~, interval_P300(1)] = min(abs(timelocked.time-0.027)); % find closest time sample to 270 ms
 [~, interval_P300(2)] = min(abs(timelocked.time-0.033)); % find closest time sample to 330 ms
 
+% Sensor med max peak i intervallet
+[~, pks_i] = max(max(abs(timelocked.avg(:, interval_P300(1):interval_P300(2))), [], 2)); % Jag vill ha raden med max
+
+% PLotta den
+timelocked.avg_org = timelocked.avg;
+timelocked.avg = timelocked.avg(pks_i, :);
+params.condition = 'Sensor with the highest peak for MMN';
+plot_butterfly(timelocked, params, save_path)
+save(fullfile(save_path, [params.sub '_' params.modality '_' params.condition]), 'timelocked', '-v7.3'); 
+
+% Hitta tiden för peak vid intervallet för den sensorn
+[~, loc] = findpeaks(abs(timelocked.avg(:, interval_P300(1):interval_P300(2))),'SortStr','descend');
+
 % Största värdet i datan, ger index för största värdet
-[~, loc] = findpeaks(std(abs(timelocked.avg(:,(interval_P300(1):interval_P300(2)))), 1),'SortStr','descend');
 if isempty(loc)
     loc = round((interval_P300(2)-interval_P300(1))/2);
     tmp.nopeak = true;
 end
 
+% % Peak sensor plot
+% %[~, pks_i] = max(max(abs(timelocked.avg), [], 2)); % 2 indicates the max value of rows, max returns the column vector containing the max value of each row, therefore a second max
+% [~, I] = max(timelocked.avg(:, loc+interval_P300(1)));
+% timelocked.avg = timelocked.avg(I, :);
+% params.condition = 'Sensor with the highest peak for MMN';
+% plot_butterfly(timelocked, params, save_path)
+% save(fullfile(save_path, [params.sub '_' params.modality '_' params.condition]), 'timelocked', '-v7.3'); 
+
 % Plot
+timelocked.avg = timelocked.avg_org;
 h = figure;
 plot(timelocked.time*1e3,timelocked.avg*params.amp_scaler);
 hold on
@@ -73,13 +94,6 @@ ylabel(params.amp_label)
 title(['Evoked ' params.modality ' - ' params.condition ' (n_{trls}=' num2str(length(timelocked.cfg.trials)) ')'])
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_MMN-' params.condition '.jpg']))
 
-% % Peak sensor plot
-%[~, pks_i] = max(max(abs(timelocked.avg), [], 2)); % 2 indicates the max value of rows, max returns the column vector containing the max value of each row, therefore a second max
-[~, I] = max(timelocked.avg(:, loc+interval_P300(1)));
-timelocked.avg = timelocked.avg(I, :);
-params.condition = 'Sensor with the highest peak for MMN';
-plot_butterfly(timelocked, params, save_path)
-save(fullfile(save_path, [params.sub '_' params.modality '_' params.condition]), 'timelocked', '-v7.3'); 
 
 
 
