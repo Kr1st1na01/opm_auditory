@@ -137,7 +137,8 @@ cfg = [];
 cfg.z_threshold = params.z_threshold;
 cfg.corr_threshold = params.corr_threshold;
 cfg.trl = trl_opm;
-[badchs_opm, badchs_opm_flat, badchs_opm_neighbors, badchs_opm_zmax, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw);
+[badchs_opm, badchs_opm_flat, ~, badchs_opm_neighbors, badchs_opm_zmax, ~, badtrl_opm_zmax] = opm_badchannels(cfg,opm_raw);
+
 cfg = [];
 cfg.channel = setdiff(opm_cleaned.label,badchs_opm);
 cfg.trials  = setdiff(1:length(opm_cleaned.trial),badtrl_opm_zmax); % remove bad trials
@@ -187,10 +188,10 @@ cfg = [];
 cfg.trl = trl_aux;
 cfg.z_threshold = params.z_threshold;
 cfg.corr_threshold = params.corr_threshold;
-[badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors, badtrl_opmeeg_zmax] = eeg_badchannels(cfg,aux_raw);
+[badchs_opmeeg, badchs_opmeeg_flat, badchs_opmeeg_neighbors] = eeg_badchannels(cfg,aux_raw);
 cfg = [];
 cfg.channel = setdiff(opmeeg_cleaned.label,badchs_opmeeg);
-cfg.trials  = setdiff(1:length(opmeeg_cleaned.trial),badtrl_opmeeg_zmax); % remove bad trials
+%cfg.trials  = setdiff(1:length(opmeeg_cleaned.trial),badtrl_opmeeg_zmax); % remove bad trials
 opmeeg_cleaned = ft_selectdata(cfg, opmeeg_cleaned);
 
 % Reject jump trials
@@ -240,7 +241,7 @@ badtrl_opmeeg_std = find(idx);
 save(fullfile(save_path, [params.sub '_opmeeg_badtrls']), ...
     'badtrl_opmeeg_jump', ...
     'badtrl_opmeeg_std', ...
-    'badtrl_opmeeg_zmax',"-v7.3"); 
+    "-v7.3"); 
 
 %save(fullfile(save_path, [params.sub '_opm_cleaned']), 'opm_cleaned',"-v7.3");
 %save(fullfile(save_path, [params.sub '_opmeeg_cleaned']), 'opmeeg_cleaned',"-v7.3"); disp('done');

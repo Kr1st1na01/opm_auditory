@@ -8,6 +8,7 @@ function [badchs, badchs_flat, badchs_neighbors] = eeg_badchannels(cfg, data)
 
 n_neighbors     = ft_getopt(cfg, 'n_neighbors', 4);
 corr_threshold  = ft_getopt(cfg, 'corr_threshold', 0.6);
+trl_eeg         = ft_getopt(cfg, 'trl');
 
 cfg = [];
 cfg.channel = 'EEG';
@@ -18,7 +19,7 @@ n_chs = length(chs);
 
 %% Find channels with flat segments or high std
 cfg = [];
-cfg.length = 1;
+cfg.trl = trl_eeg;
 data_seg = ft_redefinetrial(cfg,data);
 n_trls = length(data_seg.trial);
 trl_std = zeros(n_chs,n_trls);
@@ -37,7 +38,7 @@ cfg.lpfreq = 30;
 data_lp = ft_resampledata(cfg,data);
 
 cfg = [];
-cfg.length = 1;
+cfg.trl = trl_eeg;
 data_lp = ft_redefinetrial(cfg,data_lp);
 
 % Create neighbor structure

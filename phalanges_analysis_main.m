@@ -191,10 +191,12 @@ for i_sub = 1:size(subses,1)
             cfg.demean          = 'yes';
             cfg.baselinewindow  = [-0.100 0];
 
-            TFR_data = ft_preprocessing(cfg, params.ica(i)); % Data is processed with a lowpass filter of 40 Hz
+            TFR_data = ft_preprocessing(cfg, params.ica(i)); % Data is processed with a lowpass filter of 30 Hz
             save(fullfile(save_path, [params.sub '_' params.ica_labels{i} '_TFR_ica']), 'TFR_data',"-v7.3");
         end
         close all
+        clear i
+        clear -regexp ^TFR ^MMN
     end
 end
 
@@ -247,21 +249,15 @@ for i_sub = 1:size(subses,1)
         load(fullfile(save_path, [params.sub '_opmeeg_TFR_ica.mat']))
         TFR_opmeeg = TFR_data;
     
-        load(fullfile(save_path, [params.sub '_squidmag_cropped_ica.mat']))
-        MMN_squidmag = cropped_data;
-        load(fullfile(save_path, [params.sub '_squidmag_TFR_ica.mat']))
-        TFR_squidmag = TFR_data;
-
-        load(fullfile(save_path, [params.sub '_squidgrad_cropped_ica.mat']))
-        MMN_squidgrad = cropped_data;
-        load(fullfile(save_path, [params.sub '_squidgrad_TFR_ica.mat']))
-        TFR_squidgrad = TFR_data;
+        load(fullfile(save_path, [params.sub '_squid_cropped_ica.mat']))
+        MMN_squid = cropped_data;
+        load(fullfile(save_path, [params.sub '_squid_TFR_ica.mat']))
+        TFR_squid = TFR_data;
 
         load(fullfile(save_path, [params.sub '_squideeg_cropped_ica.mat']))
         MMN_squideeg = cropped_data;
         load(fullfile(save_path, [params.sub '_squideeg_TFR_ica.mat']))
         TFR_squideeg = TFR_data;
-
 
         clear cropped_data
         clear TFR_data
@@ -275,10 +271,10 @@ for i_sub = 1:size(subses,1)
         params.chs = '*bz';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-        opm_timelocked = timelock_MEG(MMN_opm, TFR_opm, params, save_path); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
+%         opm_timelocked = timelock_MEG(MMN_opm, TFR_opm, params, save_path); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
         MMN(MMN_opm, TFR_opm, params, save_path); % The MMN is done on cropped data and TFR is for the frequency analysis
-        close all        
-
+        close all
+%%
         params.modality = 'opmeeg';
         params.layout = opmeeg_layout;
         params.chs = 'EEG*';
@@ -315,23 +311,24 @@ for i_sub = 1:size(subses,1)
         squideeg_timelocked = timelock_MEG(MMN_squideeg, TFR_squideeg, params, save_path); 
         MMN(MMN_squideeg, TFR_squideeg, params, save_path);
         close all
+        clear -regexp ^TFR ^MMN ^opm ^opmeeg ^squid ^squidgrad ^squidmag ^squideeg
+
     end
-
-
-%     params = rmfield(params,{'modality', 'layout', 'chs', 'amp_scaler', 'amp_label'}); % remove fields used for picking modality
-%     create_bads_reports(base_save_path, i_sub, params);
-%     close all
+%%
+    params = rmfield(params,{'modality', 'layout', 'chs', 'amp_scaler', 'amp_label'}); % remove fields used for picking modality
+    create_bads_reports(base_save_path, i_sub, params);
+    close all
 end
 
 %% --- Group sensor level -------------------------------------------------
 if ~exist(fullfile(base_save_path,'figs'), 'dir')
        mkdir(fullfile(base_save_path,'figs'))
 end
-subs = 1:13;
+subs = 1:size(subses,1);
 sensor_results_goup(base_save_path,subs, params)
 
 %% Prepare MRIs
-for i_sub = 2:size(subses,1)
+for i_sub = 2:size(subses,1) % Skippar första sub ?
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});

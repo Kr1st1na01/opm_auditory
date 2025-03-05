@@ -88,10 +88,10 @@ cfg = [];
 cfg.trl = trl_meg;
 cfg.z_threshold = params.z_threshold;
 cfg.corr_threshold = params.corr_threshold;
-[badchs_opmeeg, badchs_squideeg_flat, badchs_squideeg_neighbors, badchs_squideeg_zmax, badtrl_squideeg_zmax] = eeg_badchannels(cfg,squid_raw);
+[badchs_opmeeg, badchs_squideeg_flat, badchs_squideeg_neighbors] = eeg_badchannels(cfg,squid_raw);
 cfg = [];
 cfg.channel = setdiff(squideeg_cleaned.label,badchs_opmeeg);
-cfg.trials  = setdiff(1:length(squideeg_cleaned.trial),badtrl_squideeg_zmax); % remove bad trials
+%cfg.trials  = setdiff(1:length(squideeg_cleaned.trial),badtrl_squideeg_zmax); % remove bad trials
 squideeg_cleaned = ft_selectdata(cfg, squideeg_cleaned);
 
 % Reject jump trials
@@ -117,7 +117,7 @@ squideeg_cleaned = ft_rejectartifact(cfg,squideeg_cleaned);
 save(fullfile(save_path, [params.sub '_squideeg_badchs']), ...
     'badchs_squideeg_flat', ...
     'badchs_squideeg_neighbors', ...
-    'badchs_squideeg_zmax' ,"-v7.3"); 
+    "-v7.3"); 
 
 [~,idx]=ismember(squid_cleaned.sampleinfo,badtrl_squid_jump,'rows');
 badtrl_squid_jump = find(idx);
@@ -136,7 +136,7 @@ badtrl_squideeg_std = find(idx);
 save(fullfile(save_path, [params.sub '_squideeg_badtrls']), ...
     'badtrl_squideeg_jump', ...
     'badtrl_squideeg_std', ...
-    'badtrl_squideeg_zmax',"-v7.3"); 
+    "-v7.3"); 
 
 %save(fullfile(save_path, [params.sub '_squid_cleaned']), 'squid_cleaned',"-v7.3");
 %save(fullfile(save_path, [params.sub '_squideeg_cleaned']), 'squideeg_cleaned',"-v7.3"); disp('done');
