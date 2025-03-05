@@ -270,10 +270,10 @@ for i_sub = 1:size(subses,1)
         params.chs = '*bz';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-%         opm_timelocked = timelock_MEG(MMN_opm, TFR_opm, params, save_path); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
+        opm_timelocked = timelock_MEG(MMN_opm, TFR_opm, params, save_path); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
         MMN(MMN_opm, TFR_opm, params, save_path); % The MMN is done on cropped data and TFR is for the frequency analysis
         close all
-%%
+
         params.modality = 'opmeeg';
         params.layout = opmeeg_layout;
         params.chs = 'EEG*';
