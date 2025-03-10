@@ -26,16 +26,14 @@ end
 params.trials = preOddball;
 params.condition = 'Pre-oddball trigger for No Go';
 timelocked_pre = timelock(data, params, save_path);
+params.pk_val = freqanalysis(TFR, params, save_path);
 plot_butterfly(timelocked_pre, params, save_path)
-[~, pks_i] = max(max(abs(timelocked_pre.avg), [], 2)); % 2 indicates the max value of rows, max returns the column vector containing the max value of each row, therefore a second max
-%freqanalysis(TFR, params, pks_i, save_path)
 
 params.trials = Oddball;
 params.condition = 'Oddball trigger for No go';
 timelocked = timelock(data, params, save_path);
+params.pk_val = freqanalysis(TFR, params, save_path);
 plot_butterfly(timelocked, params, save_path)
-[~, pks_i] = max(max(abs(timelocked_pre.avg), [], 2)); % 2 indicates the max value of rows, max returns the column vector containing the max value of each row, therefore a second max
-%freqanalysis(TFR, params, pks_i, save_path)
 
 %% MMN
 % (Low No go + High No go) - (pre-Low No go + pre-High No go)
@@ -51,14 +49,15 @@ plot_butterfly(timelocked, params, save_path)
 
 % Timelocked for MMN
 tmp = [];
+
 % Här får vi index av tiderna där det går från -0.1 s till 0.5 s
-[~, interval_P300(1)] = min(abs(timelocked.time-0.027)); % find closest time sample to 270 ms
-[~, interval_P300(2)] = min(abs(timelocked.time-0.033)); % find closest time sample to 330 ms
+[~, interval_P300(1)] = min(abs(timelocked.time-params.pretimwin)); % find closest time sample to 270 ms
+[~, interval_P300(2)] = min(abs(timelocked.time-params.posttimwin)); % find closest time sample to 330 ms
 
 % Sensor med max peak i intervallet
 [~, pks_i] = max(max(abs(timelocked.avg(:, interval_P300(1):interval_P300(2))), [], 2)); % Jag vill ha raden med max
 
-% PLotta den
+% Plotta den
 timelocked.avg_org = timelocked.avg;
 timelocked.avg = timelocked.avg(pks_i, :);
 params.condition = 'Sensor with the highest peak for MMN';

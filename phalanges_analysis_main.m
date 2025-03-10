@@ -270,10 +270,12 @@ for i_sub = 1:size(subses,1)
         params.chs = '*bz';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
+        params.pretimwin = 0.027;
+        params.posttimwin = 0.033;
         opm_timelocked = timelock_MEG(MMN_opm, TFR_opm, params, save_path); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
         MMN(MMN_opm, TFR_opm, params, save_path); % The MMN is done on cropped data and TFR is for the frequency analysis
         close all
-
+%%
         params.modality = 'opmeeg';
         params.layout = opmeeg_layout;
         params.chs = 'EEG*';
@@ -313,10 +315,10 @@ for i_sub = 1:size(subses,1)
         clear -regexp ^TFR ^MMN ^opm ^opmeeg ^squid ^squidgrad ^squidmag ^squideeg
 
     end
-%%
-    params = rmfield(params,{'modality', 'layout', 'chs', 'amp_scaler', 'amp_label'}); % remove fields used for picking modality
-    create_bads_reports(base_save_path, i_sub, params);
-    close all
+% %%
+%     params = rmfield(params,{'modality', 'layout', 'chs', 'amp_scaler', 'amp_label'}); % remove fields used for picking modality
+%     create_bads_reports(base_save_path, i_sub, params);
+%     close all
 end
 
 %% --- Group sensor level -------------------------------------------------
