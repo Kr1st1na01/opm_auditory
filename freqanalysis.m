@@ -1,6 +1,5 @@
-function [pks_val] = freqanalysis(data, params, save_path)
+function [] = freqanalysis(data, params, save_path, peak)
 % Här gör vi TFR
-pks_val = [];
 cfg = [];
 cfg.trials = params.trials;
 epochs = ft_selectdata(cfg, data);
@@ -25,24 +24,23 @@ cfg = [];
 cfg.parameter       = 'powspctrm';
 cfg.layout          = params.layout;
 cfg.showlabels      = 'yes';
-%cfg.baselinetype    = 'relative';
-%cfg.baseline        = [-params.pre 0];
 
 h = figure;
 ft_multiplotER(cfg, FFT_timelocked);
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_FFT multi_' params.condition '.jpg']))
 
-% Channel with highest peak % FIX, tredimensionell, powerspcr är average,
-% hitta där max. Ska vara R406
+% Channel with highest peak
 h = figure;
 FFT_mean = mean(FFT_timelocked.powspctrm, 2);
 [val, pks] = max(FFT_mean);
-pks_val = [pks_val; val];
+peak.values(end+1, 1) = val;
+peak.labels = {peak.labels;[params.modality '_' params.condition '_FFT_multi']};
 cfg.channel = pks;
 ft_singleplotER(cfg, FFT_timelocked)
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_FFT multi_' params.condition '.jpg']))
+
 
 % Topoplot
 h = figure;
@@ -86,7 +84,8 @@ saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR mult
 % Channel with highest peak
 h = figure;
 val = nanmean(TFRhann_multi.powspctrm(pks, 10, :));
-pks_val = [pks_val; val];
+peak.values(end+1, 1) = val;
+peak.labels = {peak.labels;[params.modality '_' params.condition '_TFR_multi']};
 cfg.channel = pks;
 ft_singleplotTFR(cfg, TFRhann_multi)
 colorbar

@@ -265,6 +265,9 @@ for i_sub = 1:size(subses,1)
 
 
         %% Average for OPM-MEG
+        peak = [];
+        peak.values = [];
+        peak.labels = {};
         params.modality = 'opm';
         params.layout = 'fieldlinebeta2bz_helmet.mat';
         params.chs = '*bz';
@@ -272,27 +275,26 @@ for i_sub = 1:size(subses,1)
         params.amp_label = 'B [fT]';
         params.pretimwin = 0.027;
         params.posttimwin = 0.033;
-        opm_timelocked = timelock_MEG(MMN_opm, TFR_opm, params, save_path); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
-        MMN(MMN_opm, TFR_opm, params, save_path); % The MMN is done on cropped data and TFR is for the frequency analysis
+        [opm_timelocked, peak] = timelock_MEG(MMN_opm, TFR_opm, params, save_path, peak); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
         close all
-%%
+        
+        load(fullfile(save_path, [params.sub '_opmeeg_layout.mat']))
+        opmeeg_layout = layout;
         params.modality = 'opmeeg';
         params.layout = opmeeg_layout;
         params.chs = 'EEG*';
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
-        opmeeg_timelocked = timelock_MEG(MMN_opmeeg, TFR_opmeeg, params, save_path); 
-        MMN(MMN_opmeeg, TFR_opmeeg, params, save_path);
+        [opmeeg_timelocked, peak] = timelock_MEG(MMN_opmeeg, TFR_opmeeg, params, save_path, peak); 
         close all
 
         %% Average SQUID-MEG
-        params.modality = 'squidmag';
+
         params.layout = 'neuromag306mag.lay';
         params.chs = 'megmag';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-        squidmag_timelocked = timelock_MEG(MMN_squid, TFR_squid, params, save_path); 
-        MMN(MMN_squid, TFR_squid, params, save_path);
+        [squidmag_timelocked, peak] = timelock_MEG(MMN_squid, TFR_squid, params, save_path, peak); 
         close all
 
         params.modality = 'squidgrad';
@@ -300,19 +302,20 @@ for i_sub = 1:size(subses,1)
         params.chs = 'megplanar';
         params.amp_scaler = 1e15/100;
         params.amp_label = 'B [fT/cm]';
-        squidgrad_timelocked = timelock_MEG(MMN_squid, TFR_squid, params, save_path); 
-        MMN(MMN_squid, TFR_squid, params, save_path);
+        [squidgrad_timelocked, peak] = timelock_MEG(MMN_squid, TFR_squid, params, save_path, peak); 
         close all
 
+        load(fullfile(save_path, [params.sub '_megeeg_layout.mat']))
+        megeeg_layout = layout;
         params.modality = 'squideeg';
         params.layout = megeeg_layout;
         params.chs = 'EEG*';
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
-        squideeg_timelocked = timelock_MEG(MMN_squideeg, TFR_squideeg, params, save_path); 
-        MMN(MMN_squideeg, TFR_squideeg, params, save_path);
+        [squideeg_timelocked, peak] = timelock_MEG(MMN_squideeg, TFR_squideeg, params, save_path, peak); 
+        save(fullfile(save_path, [params.sub '_peaks']), 'peak' ,"-v7.3");
         close all
-        clear -regexp ^TFR ^MMN ^opm ^opmeeg ^squid ^squidgrad ^squidmag ^squideeg
+        clear -regexp ^TFR ^MMN ^opm ^opmeeg ^squid ^squidgrad ^squidmag ^squideeg layout
 
     end
 % %%
