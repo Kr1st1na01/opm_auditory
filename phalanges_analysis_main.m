@@ -275,6 +275,8 @@ for i_sub = 1:size(subses,1)
         params.amp_label = 'B [fT]';
         params.pretimwin = 0.027;
         params.posttimwin = 0.033;
+        params.freqsteps = 0.2;
+        params.freqwin = [0 0.8];
         [opm_timelocked, peak] = timelock_MEG(MMN_opm, TFR_opm, params, save_path, peak); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
         close all
         

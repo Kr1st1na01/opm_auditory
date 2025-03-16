@@ -92,14 +92,22 @@ colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR multi_' params.condition '.jpg']))
 
 % Topoplot
-h = figure;
-cfg = [];
-cfg.baselinetype    = 'relative';
-cfg.baseline        = [-params.pre 0];
-cfg.layout = params.layout;
-cfg.xlim = [params.pretimwin params.posttimwin]; %FIX TIME 0.4-0.6 ish
-ft_topoplotTFR(cfg, TFRhann_multi)
-colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Topoplot TFR multi_' params.condition '.jpg']))
-
+s = (params.freqwin(end)-params.freqwin(1))/params.freqsteps;
+fignum = s/s;
+li = params.freqwin(1);
+while li < params.freqwin(end)
+    h = figure;
+    cfg = [];
+    cfg.baselinetype    = 'relative';
+    cfg.baseline        = [-params.pre 0];
+    cfg.layout = params.layout;
+    cfg.xlim = [li li+params.freqsteps]; %FIX TIME 0.4-0.6 ish
+    cfg.ylim = [params.freqylim];
+    ft_topoplotTFR(cfg, TFRhann_multi)
+    colorbar
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Topoplot TFR multi_' params.condition '_' int2str(fignum) '.jpg']))
+    li = li+params.freqsteps;
+    fignum = fignum+1;
+end
+close all
 end
