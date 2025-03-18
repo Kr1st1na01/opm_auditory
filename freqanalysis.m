@@ -28,7 +28,7 @@ cfg.showlabels      = 'yes';
 h = figure;
 ft_multiplotER(cfg, FFT_timelocked);
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_FFT multi_' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_FFT multi_' params.condition '.jpg']))
 
 % Channel with highest peak
 h = figure;
@@ -39,7 +39,7 @@ peak.labels = {peak.labels;[params.modality '_' params.condition '_FFT_multi']};
 cfg.channel = pks;
 ft_singleplotER(cfg, FFT_timelocked)
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_FFT multi_' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_FFT multi_' params.condition '.jpg']))
 
 
 % Topoplot
@@ -51,7 +51,7 @@ cfg.layout = params.layout;
 cfg.xlim = [params.pretimwin params.posttimwin]; %FIX TIME 0.4-0.6 ish
 ft_topoplotTFR(cfg, FFT_timelocked)
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Topoplot FFT multi_' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_FFT multi_' params.condition '.jpg']))
 
 
 %% TFR: multitaper
@@ -79,7 +79,7 @@ cfg.baseline        = [-params.pre 0];
 h = figure;
 ft_multiplotTFR(cfg, TFRhann_multi);
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR multi_' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_' params.condition '.jpg']))
 
 % Channel with highest peak
 h = figure;
@@ -89,9 +89,21 @@ peak.labels = {peak.labels;[params.modality '_' params.condition '_TFR_multi']};
 cfg.channel = pks;
 ft_singleplotTFR(cfg, TFRhann_multi)
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR multi_' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_' params.condition '.jpg']))
 
-% Topoplot
+% Big Topoplot
+h = figure;
+cfg = [];
+cfg.baselinetype    = 'relative';
+cfg.baseline        = [-params.pre 0];
+cfg.layout = params.layout;
+cfg.xlim = [params.freqwin(1) params.freqwin(end)];
+cfg.ylim = [params.freqylim];
+ft_topoplotTFR(cfg, TFRhann_multi)
+colorbar
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_' params.condition '_0.jpg']))
+
+% Topoplot the small times
 s = (params.freqwin(end)-params.freqwin(1))/params.freqsteps;
 fignum = s/s;
 li = params.freqwin(1);
@@ -105,7 +117,7 @@ while li < params.freqwin(end)
     cfg.ylim = [params.freqylim];
     ft_topoplotTFR(cfg, TFRhann_multi)
     colorbar
-    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Topoplot TFR multi_' params.condition '_' int2str(fignum) '.jpg']))
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_' params.condition '_' int2str(fignum) '.jpg']))
     li = li+params.freqsteps;
     fignum = fignum+1;
 end

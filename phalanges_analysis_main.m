@@ -163,12 +163,6 @@ for i_sub = 1:size(subses,1)
 
 %% Dividing data for MMN och TFR
         % MMN data is generated first (= cropped data) and TFR data is generated after
-        cfg = [];
-        cfg.lpfilter  = 'yes';        % Apply lowpass filter
-        cfg.lpfreq    = 20;      
-        cfg.demean          = 'yes';
-        cfg.baselinewindow  = [-0.100 0];
-        cfg.toilim = [-0.100 0.5];
         
         params.ica = [opm_ica, opmeeg_ica, squid_ica, squideeg_ica];
         params.ica_labels = {'opm', 'opmeeg', 'squid', 'squideeg'};
@@ -208,7 +202,6 @@ for i_sub = 1:size(subses,1)
     %% Paths
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
-    mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
     if ~exist(save_path, 'dir')
        mkdir(base_save_path)
     end
@@ -268,15 +261,14 @@ for i_sub = 1:size(subses,1)
         peak = [];
         peak.values = [];
         peak.labels = {};
+        
         params.modality = 'opm';
         params.layout = 'fieldlinebeta2bz_helmet.mat';
         params.chs = '*bz';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-        params.pretimwin = 0.027;
-        params.posttimwin = 0.033;
         params.freqsteps = 0.2;
-        params.freqwin = [0 0.8];
+        params.freqwin = [0.2 0.8];
         [opm_timelocked, peak] = timelock_MEG(MMN_opm, TFR_opm, params, save_path, peak); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
         close all
         
@@ -291,7 +283,7 @@ for i_sub = 1:size(subses,1)
         close all
 
         %% Average SQUID-MEG
-
+        params.modality = 'squidmag';
         params.layout = 'neuromag306mag.lay';
         params.chs = 'megmag';
         params.amp_scaler = 1e15;
@@ -317,7 +309,7 @@ for i_sub = 1:size(subses,1)
         [squideeg_timelocked, peak] = timelock_MEG(MMN_squideeg, TFR_squideeg, params, save_path, peak); 
         save(fullfile(save_path, [params.sub '_peaks']), 'peak' ,"-v7.3");
         close all
-        clear -regexp ^TFR ^MMN ^opm ^opmeeg ^squid ^squidgrad ^squidmag ^squideeg layout
+        clear -regexp ^TFR ^MMN ^opm ^opmeeg ^squid ^squidgrad ^squidmag ^squideeg layout peak
 
     end
 % %%
@@ -325,6 +317,43 @@ for i_sub = 1:size(subses,1)
 %     create_bads_reports(base_save_path, i_sub, params);
 %     close all
 end
+
+%% --- Statistical analysis -----------------------------------------------
+values = [];
+for i_sub = 1:size(subses,1)
+    params.sub = ['sub_' num2str(i_sub,'%02d')];
+    
+    % Paths
+    raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
+    save_path = fullfile(base_save_path,params.sub);
+    if ~exist(save_path, 'dir')
+       mkdir(base_save_path)
+    end
+    if ~exist(fullfile(save_path,'statistics'), 'dir')
+       mkdir(fullfile(save_path,'statistics'))
+    end
+
+    % Load the data
+    load(fullfile(save_path, [params.sub '_peaks.mat']))
+    labels = peak.labels;
+    values = [values peak.values];
+end
+clear peak
+
+    % OPM vs SQUID-data
+    % Statistiken görs för att jämföra OPM och SQUID över alla individer.
+
+    k = values(startsWith(labels, 'opmeeg'), :); % väljer rad som börjar på ordet opmeeg för alla subjects
+
+
+
+%     h = arrayfun(@(k) ttest(DATA(k,:)), 1:size(DATA,1))
+%     
+%     h = ttest(values(startsWith(labels, 'opmeeg'), :), values(startsWith(labels, 'squideeg'), :)); % Använd 'find' för att gå från logical array till index
+%     h = arrayfun(@(k) ttest(k, :), (values(startsWith(labels, 'opmeeg'), :), values(startsWith(labels, 'squideeg'), :))));
+%     h = arrayfun(@(k) ttest(k, :), (values(startsWith(labels, 'opmeeg'),:)))
+
+
 
 %% --- Group sensor level -------------------------------------------------
 if ~exist(fullfile(base_save_path,'figs'), 'dir')
