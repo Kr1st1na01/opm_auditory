@@ -343,21 +343,26 @@ clear peak
     s_squidgrad = values(startsWith(labels, 'squidgrad'), :);
     s_squideeg = values(startsWith(labels, 'squideeg'), :);
 
-statistics = table;
-statistics.labels = labels(1:6);
+label = ['Std M100', 'Low M100', 'High M100', 'Go M100'; 'pre-No Go M100', 'MMN M300']; % Dessa vill vi köra dubbelt
+xlabel = ['opm vs squidgrad', 'opm vs squidmag', 'squidmag vs squidgrad', 'omeeg vs squideeg'];
+
+statistics = table("Size", [size(Labels) size(xlabel)], VariableNames=xlabel);
+statistics = table(label);
+
 for i = 1:size(s_squideeg)
     [h, p] = ttest2(s_opm(i, :), s_squidgrad(i, :));
-    statistics(i,1) = {h p};
+    statistics.xlabel(i) = [h p];
 
     [h, p] = ttest2(s_opm(i, :), s_squidmag(i, :));
-    statistics(i,2) = {h p};
+    statistics(i,4) = {h};
 
     [h, p] = ttest2(s_squidmag(i, :), s_squidgrad(i, :));
-    statistics(i,3) = {h p};
+    statistics(i,6) = {h};
+    statistics(i,6+1) = {p};
 
-    
     [h, p] = ttest2(s_opmeeg(i,:), s_squideeg(i,:));
-    statistics(i,4) = {h p};
+    statistics(i,8) = {h};
+    statistics(i,8+1) = {p};
 end
 
 
