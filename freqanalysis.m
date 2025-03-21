@@ -27,6 +27,7 @@ cfg.showlabels      = 'yes';
 
 h = figure;
 ft_multiplotER(cfg, FFT_timelocked);
+title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_FFT multi_' params.condition '.jpg']))
 
@@ -35,12 +36,12 @@ h = figure;
 FFT_mean = mean(FFT_timelocked.powspctrm, 2);
 [val, pks] = max(FFT_mean);
 peak.values(end+1, 1) = val;
-peak.labels = {peak.labels;[params.modality '_' params.condition '_FFT_multi']};
+peak.labels = {peak.labels;[params.modality '_TFR data_FFT_multi' params.condition]};
 cfg.channel = pks;
 ft_singleplotER(cfg, FFT_timelocked)
+title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_FFT multi_' params.condition '.jpg']))
-
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_FFT multi_ max sensor ' params.condition '.jpg']))
 
 % Topoplot
 h = figure;
@@ -50,6 +51,7 @@ cfg.baseline        = [-params.pre 0];
 cfg.layout = params.layout;
 cfg.xlim = [params.pretimwin params.posttimwin]; %FIX TIME 0.4-0.6 ish
 ft_topoplotTFR(cfg, FFT_timelocked)
+title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_FFT multi_' params.condition '.jpg']))
 
@@ -78,6 +80,7 @@ cfg.baseline        = [-params.pre 0];
 
 h = figure;
 ft_multiplotTFR(cfg, TFRhann_multi);
+title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_' params.condition '.jpg']))
 
@@ -85,11 +88,12 @@ saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data
 h = figure;
 val = nanmean(TFRhann_multi.powspctrm(pks, 10, :));
 peak.values(end+1, 1) = val;
-peak.labels = {peak.labels;[params.modality '_' params.condition '_TFR_multi']};
+peak.labels = {peak.labels;[params.modality '_TFR data_TFR_multi' params.condition]};
 cfg.channel = pks;
 ft_singleplotTFR(cfg, TFRhann_multi)
+title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_max sensor ' params.condition '.jpg']))
 
 % Big Topoplot
 h = figure;
@@ -100,10 +104,11 @@ cfg.layout = params.layout;
 cfg.xlim = [params.freqwin(1) params.freqwin(end)];
 cfg.ylim = [params.freqylim];
 ft_topoplotTFR(cfg, TFRhann_multi)
+title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_' params.condition '_0.jpg']))
 
-% Topoplot the small times
+% Topoplot, the small times
 s = (params.freqwin(end)-params.freqwin(1))/params.freqsteps;
 fignum = s/s;
 li = params.freqwin(1);
@@ -113,9 +118,10 @@ while li < params.freqwin(end)
     cfg.baselinetype    = 'relative';
     cfg.baseline        = [-params.pre 0];
     cfg.layout = params.layout;
-    cfg.xlim = [li li+params.freqsteps]; %FIX TIME 0.4-0.6 ish
+    cfg.xlim = [li li+params.freqsteps];
     cfg.ylim = [params.freqylim];
     ft_topoplotTFR(cfg, TFRhann_multi)
+    title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
     colorbar
     saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_' params.condition '_' int2str(fignum) '.jpg']))
     li = li+params.freqsteps;

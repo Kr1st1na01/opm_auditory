@@ -1,4 +1,4 @@
-function [peak, tmp] = findpeaks(data, params, peak)
+function [tmp, peak] = find_peak(data, params, peak)
     tmp = [];
     
     % The indexes of the times are saved
@@ -12,26 +12,26 @@ function [peak, tmp] = findpeaks(data, params, peak)
         tmp.nopeak = true;
     end 
     
-    tmp.i_peaktime = interval_P300(1)+tmp.i_peaktime; % Correct index for peak time. 
+    tmp.i_peaktime = interval_P300(1)+tmp.i_peaktime(1); % Correct index for peak time. 
     
-    tmp.time = timelockedMMN.avg(:,tmp.i_peaktime); % Save the values for all the sensors at the peak time
+    tmp.time = data.avg(:,tmp.i_peaktime); % Save the values for all the sensors at the peak time
     
     [tmp.maxval, maxch] = max(tmp.time, [], 1);
     [tmp.minval, minch] = min(tmp.time, [], 1);
     
     % Saving the biggest value and its index
     if abs(tmp.maxval) > abs(tmp.minval)    
-        tmp.peakch = timelockedMMN.label{maxch};
+        tmp.peakch = data.label{maxch};
         tmp.amplitude = tmp.maxval;
         tmp.i_peakch = maxch;
     else
-        tmp.peakch = timelockedMMN.label{minch};
+        tmp.peakch = data.label{minch};
         tmp.amplitude = tmp.minval;
         tmp.i_peakch = minch;
     end
-    
-    % Save for statistical analysis
+
+    % Statistics
+    peak.labels(end+1,1) = {[params.modality '_MMN data_' params.condition]};
     peak.values(end+1,1) = tmp.amplitude;
-    peak.labels(end+1,1) = {[params.modality '_MMN data_M300_' params.condition]};
 
 end

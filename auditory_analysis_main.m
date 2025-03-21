@@ -90,9 +90,6 @@ for i_sub = 1:size(subses,1)
     if ~exist(save_path, 'dir')
        mkdir(base_save_path)
     end
-    if ~exist(fullfile(save_path,'figs'), 'dir')
-       mkdir(fullfile(save_path,'figs'))
-    end
     meg_file = fullfile(raw_path, 'meg', 'AudOddMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
     opm_file = fullfile(raw_path, 'osmeg', 'AudOddOPM_raw.fif');
     aux_file = fullfile(raw_path, 'meg', 'AudOddEEG.fif');
@@ -196,15 +193,12 @@ end
 
 %% Loop over subjects for timelocking
 
-for i_sub = 1:size(subses,1)
+for i_sub = 3:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     
     %% Paths
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
-    if ~exist(save_path, 'dir')
-       mkdir(base_save_path)
-    end
     if ~exist(fullfile(save_path,'figs'), 'dir')
        mkdir(fullfile(save_path,'figs'))
     end
@@ -343,16 +337,24 @@ clear peak
     % OPM vs SQUID-data
     % Statistiken görs för att jämföra OPM och SQUID över alla individer.
 
-    k = values(startsWith(labels, 'opmeeg'), :); % väljer rad som börjar på ordet opmeeg för alla subjects
+    s_opm = values(startsWith(labels, 'opm_'), :);
+    s_opmeeg = values(startsWith(labels, 'opmeeg'), :);
+    s_squidmag = values(startsWith(labels, 'squidmag'), :);
+    s_squidgrad = values(startsWith(labels, 'squidgrad'), :);
+    s_squideeg = values(startsWith(labels, 'squideeg'), :);
 
-
-
-%     h = arrayfun(@(k) ttest(DATA(k,:)), 1:size(DATA,1))
-%     
-%     h = ttest(values(startsWith(labels, 'opmeeg'), :), values(startsWith(labels, 'squideeg'), :)); % Använd 'find' för att gå från logical array till index
-%     h = arrayfun(@(k) ttest(k, :), (values(startsWith(labels, 'opmeeg'), :), values(startsWith(labels, 'squideeg'), :))));
-%     h = arrayfun(@(k) ttest(k, :), (values(startsWith(labels, 'opmeeg'),:)))
-
+% s_opm_vs_squidmag = [];
+% s_opm_vs_squidgrad = [];
+% s_eeg_vs_eeg = [];
+% for i = 1:size(s_squideeg)
+%     s_opm_vs_squidgrad = [s_opm_vs_squidgrad, ttest2(s_opm(i, :), s_squidgrad(i, :))];
+%     s_opm_vs_squidmag = [s_opm_vs_squidmag, ttest2(s_opm(i, :), s_squidmag(i, :))];
+%     s_eeg_vs_eeg = [s_eeg_vs_eeg, ttest2(s_opmeeg(i,:), s_squideeg(i,:))];
+% end
+% 
+%     s_opm_vs_squidmag = ttest2(s_opm, s_squidmag);
+%     s_opm_vs_squidgrad = ttest2(s_opm, s_squidgrad);
+%     s_eeg_vs_eeg = ttest2(s_opmeeg, s_squideeg);
 
 
 %% --- Group sensor level -------------------------------------------------

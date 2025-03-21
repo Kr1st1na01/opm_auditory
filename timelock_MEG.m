@@ -17,14 +17,13 @@ params.condition = 'Std';
 timelocked = timelock(MMN_data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
 
-% Sensor with highest peak
-[peak, tmp] = findpeaks(timelocked, params, peak);
-
-timelocked.avg = timelocked.avg(tmp.i_peakch,:);
-peak.labels(end+1,1) = {[params.modality '_MMN data_M100_' params.condition]};
-peak.values(end+1,1) = tmp.amplitude; % A(4:5,5:6) = [2 3; 4 5], this expands the matrix
 params.freqylim = [37 41];
 freqanalysis(TFR_data, params, save_path, peak);
+
+% Sensor with highest peak
+params.condition = 'M100_Std max sensor';
+[tmp, peak] = find_peak(timelocked, params, peak);
+timelocked.avg = timelocked.avg(tmp.i_peakch,:);
 plot_butterfly(timelocked, params, save_path)
 
 
@@ -35,15 +34,15 @@ params.condition = 'Low';
 timelocked = timelock(MMN_data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
 
-% Sensor with highest peak
-[peak, tmp] = findpeaks(timelocked, params, peak);
-
-timelocked.avg = timelocked.avg(tmp.i_peakch,:);
-peak.labels(end+1,1) = {[params.modality '_MMN data_M100_' params.condition]};
-peak.values(end+1,1) = tmp.amplitude;
 params.freqylim = [41 45];
 freqanalysis(TFR_data, params, save_path, peak);
+
+% Sensor with highest peak
+params.condition = 'M100_Low max sensor';
+[tmp, peak] = find_peak(timelocked, params, peak);
+timelocked.avg = timelocked.avg(tmp.i_peakch,:);
 plot_butterfly(timelocked, params, save_path)
+
 
 %% Timelocked of High
 % Plot both high triggers
@@ -52,13 +51,13 @@ params.condition = 'High';
 timelocked = timelock(MMN_data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
 
-% Sensor with highest peak
-[peak, tmp] = findpeaks(timelocked, params, peak);
-timelocked.avg = timelocked.avg(tmp.i_peaktime,:);
-peak.labels(end+1,1) = {[params.modality '_MMN data_M100_' params.condition]};
-peak.values(end+1,1) = tmp.amplitude;
 params.freqylim = [41 45];
 freqanalysis(TFR_data, params, save_path, peak);
+
+% Sensor with highest peak
+params.condition = 'M100_High max sensor';
+[tmp, peak] = find_peak(timelocked, params, peak);
+timelocked.avg = timelocked.avg(tmp.i_peakch,:);
 plot_butterfly(timelocked, params, save_path)
 
 peak = MMN(MMN_data, TFR_data, params, save_path, peak); % The MMN is done on cropped data and TFR is for the frequency analysis
