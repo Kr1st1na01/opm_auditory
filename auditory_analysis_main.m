@@ -343,26 +343,40 @@ clear peak
     s_squidgrad = values(startsWith(labels, 'squidgrad'), :);
     s_squideeg = values(startsWith(labels, 'squideeg'), :);
 
-label = ['Std M100', 'Low M100', 'High M100', 'Go M100'; 'pre-No Go M100', 'MMN M300']; % Dessa vill vi köra dubbelt
-xlabel = ['opm vs squidgrad', 'opm vs squidmag', 'squidmag vs squidgrad', 'omeeg vs squideeg'];
 
-statistics = table("Size", [size(Labels) size(xlabel)], VariableNames=xlabel);
-statistics = table(label);
+statistics = table;
+label = {'Std M100'; 'Low M100'; 'High M100'; 'Go M100'; 'pre-No Go M100'; 'MMN M300'};
+statistics.label = label;
+for i = 1:size(xlabel)
+    
+    save_stats = [];
+    for k = 1:size(s_squideeg)
+        [h, p] = ttest2(s_opm(k, :), s_squidgrad(k, :));
+        save_stats = [save_stats;[h p]];
+    end
+    statistics.opm_vs_squidgrad = save_stats;
+    
+    save_stats = [];
+    for k = 1:size(s_squideeg)
+        [h, p] = ttest2(s_opm(k, :), s_squidmag(k, :));
+        save_stats = [save_stats;[h p]];
+    end
+    statistics.opm_vs_squidmag = save_stats;
 
-for i = 1:size(s_squideeg)
-    [h, p] = ttest2(s_opm(i, :), s_squidgrad(i, :));
-    statistics.xlabel(i) = [h p];
+    save_stats = [];
+    for k = 1:size(s_squideeg)
+        [h, p] = ttest2(s_squidmag(k, :), s_squidgrad(k, :));
+        save_stats = [save_stats; [h p]];
+    end
+    statistics.squidmag_vs_squidgrad = save_stats;
 
-    [h, p] = ttest2(s_opm(i, :), s_squidmag(i, :));
-    statistics(i,4) = {h};
+    save_stats = [];
+    for k = 1:size(s_squideeg)
+        [h4, p] = ttest2(s_opmeeg(i,:), s_squideeg(i,:));
+        save_stats = [save_stats; [h p]];
+    end
+    statistics.opmeeg_vs_squideeg = save_stats;
 
-    [h, p] = ttest2(s_squidmag(i, :), s_squidgrad(i, :));
-    statistics(i,6) = {h};
-    statistics(i,6+1) = {p};
-
-    [h, p] = ttest2(s_opmeeg(i,:), s_squideeg(i,:));
-    statistics(i,8) = {h};
-    statistics(i,8+1) = {p};
 end
 
 
