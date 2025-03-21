@@ -21,7 +21,7 @@ timelocked_G = timelock(MMN_data, params, save_path);
 plot_butterfly(timelocked_G, params, save_path)
 
 params.freqylim = [41 45];
-freqanalysis(TFR_data, params, save_path, peak);
+peak = freqanalysis(TFR_data, params, save_path, peak);
 
 % Max channel
 params.pretimwin = 0.08;
@@ -57,7 +57,7 @@ timelocked_pre = timelock(MMN_data, params, save_path);
 plot_butterfly(timelocked_pre, params, save_path)
 
 params.freqylim = [37 41];
-freqanalysis(TFR_data, params, save_path, peak);
+peak = freqanalysis(TFR_data, params, save_path, peak);
 
 % No Go
 params.trials = NG;
@@ -66,7 +66,7 @@ timelocked = timelock(MMN_data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
 
 params.freqylim = [41 45];
-freqanalysis(TFR_data, params, save_path, peak);
+peak = freqanalysis(TFR_data, params, save_path, peak);
 
 %% MMN
 params.trials = NG;
@@ -87,7 +87,7 @@ plot_butterfly(timelocked_pre, params, save_path)
 
 % No Go
 params.condition = 'M100_No Go trigger';
-tmp = find_peak(timelocked, params, peak);
+[tmp, peak] = find_peak(timelocked, params, peak);
 timelocked.avg = timelocked.avg(tmp.i_peakch,:);
 plot_butterfly(timelocked, params, save_path)
 

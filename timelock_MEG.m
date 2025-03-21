@@ -18,7 +18,7 @@ timelocked = timelock(MMN_data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
 
 params.freqylim = [37 41];
-freqanalysis(TFR_data, params, save_path, peak);
+peak = freqanalysis(TFR_data, params, save_path, peak);
 
 % Sensor with highest peak
 params.condition = 'M100_Std max sensor';
@@ -35,7 +35,7 @@ timelocked = timelock(MMN_data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
 
 params.freqylim = [41 45];
-freqanalysis(TFR_data, params, save_path, peak);
+peak = freqanalysis(TFR_data, params, save_path, peak);
 
 % Sensor with highest peak
 params.condition = 'M100_Low max sensor';
@@ -52,7 +52,7 @@ timelocked = timelock(MMN_data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
 
 params.freqylim = [41 45];
-freqanalysis(TFR_data, params, save_path, peak);
+peak = freqanalysis(TFR_data, params, save_path, peak);
 
 % Sensor with highest peak
 params.condition = 'M100_High max sensor';

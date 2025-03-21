@@ -1,4 +1,4 @@
-function [] = freqanalysis(data, params, save_path, peak)
+function [peak] = freqanalysis(data, params, save_path, peak)
 % Här gör vi TFR
 cfg = [];
 cfg.trials = params.trials;

@@ -343,18 +343,22 @@ clear peak
     s_squidgrad = values(startsWith(labels, 'squidgrad'), :);
     s_squideeg = values(startsWith(labels, 'squideeg'), :);
 
-% s_opm_vs_squidmag = [];
-% s_opm_vs_squidgrad = [];
-% s_eeg_vs_eeg = [];
-% for i = 1:size(s_squideeg)
-%     s_opm_vs_squidgrad = [s_opm_vs_squidgrad, ttest2(s_opm(i, :), s_squidgrad(i, :))];
-%     s_opm_vs_squidmag = [s_opm_vs_squidmag, ttest2(s_opm(i, :), s_squidmag(i, :))];
-%     s_eeg_vs_eeg = [s_eeg_vs_eeg, ttest2(s_opmeeg(i,:), s_squideeg(i,:))];
-% end
-% 
-%     s_opm_vs_squidmag = ttest2(s_opm, s_squidmag);
-%     s_opm_vs_squidgrad = ttest2(s_opm, s_squidgrad);
-%     s_eeg_vs_eeg = ttest2(s_opmeeg, s_squideeg);
+statistics = table;
+statistics.labels = labels(1:6);
+for i = 1:size(s_squideeg)
+    [h, p] = ttest2(s_opm(i, :), s_squidgrad(i, :));
+    statistics(i,1) = {h p};
+
+    [h, p] = ttest2(s_opm(i, :), s_squidmag(i, :));
+    statistics(i,2) = {h p};
+
+    [h, p] = ttest2(s_squidmag(i, :), s_squidgrad(i, :));
+    statistics(i,3) = {h p};
+
+    
+    [h, p] = ttest2(s_opmeeg(i,:), s_squideeg(i,:));
+    statistics(i,4) = {h p};
+end
 
 
 %% --- Group sensor level -------------------------------------------------
