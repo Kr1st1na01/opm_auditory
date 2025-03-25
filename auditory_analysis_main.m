@@ -193,7 +193,7 @@ end
 
 %% Loop over subjects for timelocking
 
-for i_sub = 3:size(subses,1)
+for i_sub = 1%:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     
     %% Paths
@@ -329,8 +329,12 @@ for i_sub = 1:size(subses,1)
 
     % Load the data
     load(fullfile(save_path, [params.sub '_peaks.mat']))
-    labels = peak.labels;
+    if i_sub == 1 % Det här pga att jag har kört koden med lite fel i label för alla andra och den här är den jag körde om för att få rätt labels
+        labels = peak.labels;
+        values = [values peak.values];
+    else
     values = [values peak.values];
+    end
 end
 clear peak
 
@@ -343,42 +347,45 @@ clear peak
     s_squidgrad = values(startsWith(labels, 'squidgrad'), :);
     s_squideeg = values(startsWith(labels, 'squideeg'), :);
 
-
 statistics = table;
-label = {'Std M100'; 'Low M100'; 'High M100'; 'Go M100'; 'pre-No Go M100'; 'MMN M300'};
-statistics.label = label;
-for i = 1:size(xlabel)
+table_label = replace(replace(labels(startsWith(labels, 'opm_'),:),'opm_', ''),'_', ', ');
+statistics.label = table_label;
+save_stats1 = [];
+save_stats2 = [];
+save_stats3 = [];
+save_stats4 = [];
+
+% Stats som fås ut är en struct och har .tstats = value of test tatistics
+% .df = degrees of freedom of the test and .sd = pooled estimated population
+% standard deviation.
+
+for i = 1:size(table_label) % Going through the labels
     
-    save_stats = [];
-    for k = 1:size(s_squideeg)
-        [h, p] = ttest2(s_opm(k, :), s_squidgrad(k, :));
-        save_stats = [save_stats;[h p]];
-    end
-    statistics.opm_vs_squidgrad = save_stats;
-    
-    save_stats = [];
-    for k = 1:size(s_squideeg)
-        [h, p] = ttest2(s_opm(k, :), s_squidmag(k, :));
-        save_stats = [save_stats;[h p]];
-    end
-    statistics.opm_vs_squidmag = save_stats;
+    [h, p] = ttest(s_opm(i, :), s_squidgrad(i, :)); % Calculating h and p-value.
+    save_stats1 = [save_stats1; [h p]]; % Saving them
 
-    save_stats = [];
-    for k = 1:size(s_squideeg)
-        [h, p] = ttest2(s_squidmag(k, :), s_squidgrad(k, :));
-        save_stats = [save_stats; [h p]];
-    end
-    statistics.squidmag_vs_squidgrad = save_stats;
+    [h, p] = ttest(s_opm(i, :), s_squidmag(i, :));
+    save_stats2 = [save_stats2; [h p]];
 
-    save_stats = [];
-    for k = 1:size(s_squideeg)
-        [h4, p] = ttest2(s_opmeeg(i,:), s_squideeg(i,:));
-        save_stats = [save_stats; [h p]];
-    end
-    statistics.opmeeg_vs_squideeg = save_stats;
+    [h, p] = ttest(s_squidmag(i, :), s_squidgrad(i, :));
+    save_stats3 = [save_stats3; [h p]];
 
+    [h, p] = ttest(s_opmeeg(i,:), s_squideeg(i,:));
+    save_stats4 = [save_stats4; [h p]];
 end
 
+    statistics.opm_vs_squidgrad = save_stats1; % Putting the values in the table
+    statistics.opm_vs_squidmag = save_stats2;
+    statistics.squidmag_vs_squidgrad = save_stats3;
+    statistics.opmeeg_vs_squideeg = save_stats4;
+clear -regexp ^save_stats
+
+% Plotting :D
+h = figure;
+for row = 1:length(s_opm) % rader
+    boxplot(s_opm(row, :), s_squidgrad(row, :), s_opm);
+end
+grid on;
 
 %% --- Group sensor level -------------------------------------------------
 if ~exist(fullfile(base_save_path,'figs'), 'dir')
