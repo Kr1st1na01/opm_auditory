@@ -182,18 +182,18 @@ for i_sub = 1:size(subses,1)
             cfg.demean          = 'yes';
             cfg.baselinewindow  = [-0.100 0];
 
-            TFR_data = ft_preprocessing(cfg, params.ica(i)); % Data is processed with a lowpass filter of 30 Hz
-            save(fullfile(save_path, [params.sub '_' params.ica_labels{i} '_TFR_ica']), 'TFR_data',"-v7.3");
+            long_data = ft_preprocessing(cfg, params.ica(i)); % Data is processed with a lowpass filter of 30 Hz
+            save(fullfile(save_path, [params.sub '_' params.ica_labels{i} '_long_ica']), 'long_data',"-v7.3");
         end
         close all
         clear i
-        clear -regexp ^TFR ^MMN
+        clear -regexp ^long ^cropped
     end
 end
 
 %% Loop over subjects for timelocking
 
-for i_sub = 1%:size(subses,1)
+for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     
     %% Paths
@@ -225,26 +225,54 @@ for i_sub = 1%:size(subses,1)
         
         ft_hastoolbox('mne', 1);
        
+        %% Efter att jag kört ICA under helgen så kan jag använda denna
+        
+%         % Load data
+%         load(fullfile(save_path, [params.sub '_opm_cropped_ica.mat']))
+%         Evoked_opm = cropped_data;
+%         load(fullfile(save_path, [params.sub '_opm_long_ica.mat']))
+%         Freqtag_opm = long_data;
+% 
+%         load(fullfile(save_path, [params.sub '_opmeeg_cropped_ica.mat']))
+%         Evoked_opmeeg = cropped_data;
+%         load(fullfile(save_path, [params.sub '_opmeeg_long_ica.mat']))
+%         Freqtag_opmeeg = long_data;
+%     
+%         load(fullfile(save_path, [params.sub '_squid_cropped_ica.mat']))
+%         Evoked_squid = cropped_data;
+%         load(fullfile(save_path, [params.sub '_squid_long_ica.mat']))
+%         Freqtag_squid = long_data;
+% 
+%         load(fullfile(save_path, [params.sub '_squideeg_long_ica.mat']))
+%         Evoked_squideeg = cropped_data;
+%         load(fullfile(save_path, [params.sub '_squideeg_long_ica.mat']))
+%         Freqtag_squideeg = long_data;
+% 
+%         clear cropped_data
+%         clear long_data
+%         clear labels
+
+        %%
         % Load data
         load(fullfile(save_path, [params.sub '_opm_cropped_ica.mat']))
-        MMN_opm = cropped_data;
+        Evoked_opm = cropped_data;
         load(fullfile(save_path, [params.sub '_opm_TFR_ica.mat']))
-        TFR_opm = TFR_data;
+        Freqtag_opm = TFR_data;
 
         load(fullfile(save_path, [params.sub '_opmeeg_cropped_ica.mat']))
-        MMN_opmeeg = cropped_data;
+        Evoked_opmeeg = cropped_data;
         load(fullfile(save_path, [params.sub '_opmeeg_TFR_ica.mat']))
-        TFR_opmeeg = TFR_data;
+        Freqtag_opmeeg = TFR_data;
     
         load(fullfile(save_path, [params.sub '_squid_cropped_ica.mat']))
-        MMN_squid = cropped_data;
+        Evoked_squid = cropped_data;
         load(fullfile(save_path, [params.sub '_squid_TFR_ica.mat']))
-        TFR_squid = TFR_data;
+        Freqtag_squid = TFR_data;
 
         load(fullfile(save_path, [params.sub '_squideeg_cropped_ica.mat']))
-        MMN_squideeg = cropped_data;
+        Evoked_squideeg = cropped_data;
         load(fullfile(save_path, [params.sub '_squideeg_TFR_ica.mat']))
-        TFR_squideeg = TFR_data;
+        Freqtag_squideeg = TFR_data;
 
         clear cropped_data
         clear TFR_data
@@ -261,9 +289,8 @@ for i_sub = 1%:size(subses,1)
         params.chs = '*bz';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-        params.freqsteps = 0.2;
-        params.freqwin = [0.2 0.8];
-        [opm_timelocked, peak] = timelock_MEG(MMN_opm, TFR_opm, params, save_path, peak); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
+        [opm_timelocked, peak] = evoked_analysis(Evoked_opm, params, save_path, peak); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
+        peak = freqtag_analysis(Freqtag_opm, params, save_path, peak);
         close all
         
         load(fullfile(save_path, [params.sub '_opmeeg_layout.mat']))
@@ -273,7 +300,8 @@ for i_sub = 1%:size(subses,1)
         params.chs = 'EEG*';
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
-        [opmeeg_timelocked, peak] = timelock_MEG(MMN_opmeeg, TFR_opmeeg, params, save_path, peak); 
+        [opmeeg_timelocked, peak] = evoked_analysis(Evoked_opmeeg, Freqtag_opmeeg, params, save_path, peak); 
+        peak = freqtag_analysis(Freqtag_opmeeg, params, save_path, peak);
         close all
 
         %% Average SQUID-MEG
@@ -282,7 +310,8 @@ for i_sub = 1%:size(subses,1)
         params.chs = 'megmag';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-        [squidmag_timelocked, peak] = timelock_MEG(MMN_squid, TFR_squid, params, save_path, peak); 
+        [squidmag_timelocked, peak] = evoked_analysis(Evoked_squid, Freqtag_squid, params, save_path, peak); 
+        peak = freqtag_analysis(Freqtag_squid, params, save_path, peak);
         close all
 
         params.modality = 'squidgrad';
@@ -290,7 +319,8 @@ for i_sub = 1%:size(subses,1)
         params.chs = 'megplanar';
         params.amp_scaler = 1e15/100;
         params.amp_label = 'B [fT/cm]';
-        [squidgrad_timelocked, peak] = timelock_MEG(MMN_squid, TFR_squid, params, save_path, peak); 
+        [squidgrad_timelocked, peak] = evoked_analysis(Evoked_squid, Freqtag_squid, params, save_path, peak); 
+        peak = freqtag_analysis(Freqtag_squid, params, save_path, peak);
         close all
 
         load(fullfile(save_path, [params.sub '_megeeg_layout.mat']))
@@ -300,7 +330,9 @@ for i_sub = 1%:size(subses,1)
         params.chs = 'EEG*';
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
-        [squideeg_timelocked, peak] = timelock_MEG(MMN_squideeg, TFR_squideeg, params, save_path, peak); 
+        [squideeg_timelocked, peak] = evoked_analysis(Evoked_squideeg, Freqtag_squideeg, params, save_path, peak); 
+        peak = freqtag_analysis(Freqtag_squideeg, params, save_path, peak);
+        
         save(fullfile(save_path, [params.sub '_peaks']), 'peak' ,"-v7.3");
         close all
         clear -regexp ^TFR ^MMN ^opm ^opmeeg ^squid ^squidgrad ^squidmag ^squideeg layout peak
@@ -336,6 +368,7 @@ for i_sub = 1:size(subses,1)
     values = [values peak.values];
     end
 end
+% labels = peak.labels;
 clear peak
 
     % OPM vs SQUID-data

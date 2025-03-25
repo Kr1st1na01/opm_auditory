@@ -29,18 +29,18 @@ h = figure;
 ft_multiplotER(cfg, FFT_timelocked);
 title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_FFT multi_' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_' params.condition '.jpg']))
 
 % Channel with highest peak
 h = figure;
-FFT_mean = mean(FFT_timelocked.powspctrm, 2);
-[val, pks] = max(FFT_mean);
-peak.values(end+1, 1) = val;peak.labels(end+1,1) = {[params.modality '_TFR data_FFT_multi_' params.condition]};
+[pow, pks] = max(FFT_timelocked.powspctrm(:,ismember(params.specificfreq, FFT_timelocked.freq)));
+peak.values = [peak.values; pow];
+peak.labels(end+1,1) = {[params.modality '_Freq tag_FFT_' params.condition '_freq ' int2str(params.specificfreq) '_power']};
 cfg.channel = pks;
 ft_singleplotER(cfg, FFT_timelocked)
 title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_FFT multi_ max sensor ' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_max sensor ' params.condition '.jpg']))
 
 % Topoplot
 h = figure;
@@ -48,11 +48,11 @@ cfg = [];
 cfg.baselinetype    = 'relative';
 cfg.baseline        = [-params.pre 0];
 cfg.layout = params.layout;
-cfg.xlim = [params.pretimwin params.posttimwin]; %FIX TIME 0.4-0.6 ish
+cfg.xlim = [params.pretimwin params.posttimwin];
 ft_topoplotTFR(cfg, FFT_timelocked)
 title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_FFT multi_' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_' params.condition '.jpg']))
 
 
 %% TFR: multitaper
@@ -81,18 +81,16 @@ h = figure;
 ft_multiplotTFR(cfg, TFRhann_multi);
 title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_' params.condition '.jpg']))
 
 % Channel with highest peak
 h = figure;
 val = nanmean(TFRhann_multi.powspctrm(pks, 10, :));
-peak.values(end+1, 1) = val;
-peak.labels(end+1, 1) = {[params.modality '_TFR data_TFR_multi_' params.condition]};
 cfg.channel = pks;
 ft_singleplotTFR(cfg, TFRhann_multi)
 title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_max sensor ' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_ max sensor ' params.condition '.jpg']))
 
 % Big Topoplot
 h = figure;
@@ -105,7 +103,7 @@ cfg.ylim = [params.freqylim];
 ft_topoplotTFR(cfg, TFRhann_multi)
 title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_' params.condition '_0.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_' params.condition '_0.jpg']))
 
 % Topoplot, the small times
 s = (params.freqwin(end)-params.freqwin(1))/params.freqsteps;
@@ -122,7 +120,7 @@ while li < params.freqwin(end)
     ft_topoplotTFR(cfg, TFRhann_multi)
     title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
     colorbar
-    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_TFR data_TFR multi_' params.condition '_' int2str(fignum) '.jpg']))
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_' params.condition '.jpg']))
     li = li+params.freqsteps;
     fignum = fignum+1;
 end

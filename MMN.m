@@ -4,7 +4,6 @@ function [peak] = MMN(MMN_data, TFR_data, params, save_path, peak) % data = MMN_
 cfg = [];
 cfg.channel = params.chs;
 MMN_data = ft_selectdata(cfg, MMN_data);
-TFR_data = ft_selectdata(cfg, TFR_data);
 
 %% Go trigger
 G = [];
@@ -20,9 +19,6 @@ params.condition = 'Go trigger';
 timelocked_G = timelock(MMN_data, params, save_path);
 plot_butterfly(timelocked_G, params, save_path)
 
-params.freqylim = [41 45];
-peak = freqanalysis(TFR_data, params, save_path, peak);
-
 % Max channel
 params.pretimwin = 0.08;
 params.posttimwin = 0.12;
@@ -33,20 +29,11 @@ timelocked_G.avg = timelocked_G.avg(tmp.i_peakch,:);
 plot_butterfly(timelocked_G, params, save_path)
 
 %% Saving trigger indeces
-% High NG
-% Low NG
 NG = [];
-pre_NG = [];
-H_NG = find(MMN_data.trialinfo==params.trigger_code(4)); % Finds index of trigger 11, High No Go
-L_NG = find(MMN_data.trialinfo==params.trigger_code(2)); % Finds index of trigger 3, Low No Go
+NG = find(ismember(data.trialinfo, [params.trigger_code(2) params.trigger_code(4)])); % all No Go triggers saved in one place
 
-for i = 1:length(H_NG)
-    NG = [NG; H_NG(i)]; % Adds index
-    pre_NG = [pre_NG; H_NG(i)-1]; % Adds that preceding index
-end
-for i = 1:length(L_NG)
-    NG = [NG; L_NG(i)];
-    pre_NG = [pre_NG; L_NG(i)-1];
+for i = 1:size(NG)
+    pre_NG = [pre_NG; NG(i)-1]; % for every index we save the one before
 end
 
 %% Timelocking data
@@ -56,17 +43,11 @@ params.condition = 'pre No Go trigger';
 timelocked_pre = timelock(MMN_data, params, save_path);
 plot_butterfly(timelocked_pre, params, save_path)
 
-params.freqylim = [37 41];
-peak = freqanalysis(TFR_data, params, save_path, peak);
-
 % No Go
 params.trials = NG;
 params.condition = 'No Go trigger';
 timelocked = timelock(MMN_data, params, save_path);
 plot_butterfly(timelocked, params, save_path)
-
-params.freqylim = [41 45];
-peak = freqanalysis(TFR_data, params, save_path, peak);
 
 %% MMN
 params.trials = NG;
