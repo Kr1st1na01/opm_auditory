@@ -345,7 +345,7 @@ for i_sub = 1:size(subses,1)
 end
 
 %% --- Statistical analysis -----------------------------------------------
-stats.values = {};
+stats.values = [];
 
 for i_sub = 1:11%:size(subses,1) % Det verkar som att 12 och 13 inte körde klart ordentligtend
     params.sub = ['sub_' num2str(i_sub,'%02d')];
@@ -372,48 +372,48 @@ clear peak
 % values ? ? ?? ?
 
 % Save all amplitudes 
-stats.val_amp = values(contains(labels, 'amplitude'), :);
-stats.lab_amp = labels(contains(labels, 'amplitude'));
+stats.val_amp = stats.values(contains(stats.labels, 'amplitude'), :);
+stats.lab_amp = stats.labels(contains(stats.labels, 'amplitude'));
 
 % All powers
-stats.val_pow = values(contains(labels, 'power'), :);
-stats.lab_pow = labels(contains(labels, 'power'));
+stats.val_pow = stats.values(contains(stats.labels, 'power'), :);
+stats.lab_pow = stats.labels(contains(stats.labels, 'power'));
 
 % All latencies
-stats.val_lat = values(contains(labels, 'latency'), :);
-stats.lab_lat = labels(contains(labels, 'latency'));
+stats.val_lat = stats.values(contains(stats.labels, 'latency'), :);
+stats.lab_lat = stats.labels(contains(stats.labels, 'latency'));
 
     % OPM vs SQUID-data
     % Statistiken görs för att jämföra OPM och SQUID över alla individer.
 
-stats.val_opm = values(startsWith(labels, 'opm_'), :);
-stats.lab_opm = labels(startsWith(labels, 'opm_'));
+stats.val_opm = stats.values(startsWith(stats.labels, 'opm_'), :);
+stats.lab_opm = stats.labels(startsWith(stats.labels, 'opm_'));
 
-stats.val_opmeeg = values(startsWith(labels, 'opmeeg'), :);
-stats.lab_opmeeg = labels(startsWith(labels, 'opmeeg'));
+stats.val_opmeeg = stats.values(startsWith(stats.labels, 'opmeeg'), :);
+stats.lab_opmeeg = stats.labels(startsWith(stats.labels, 'opmeeg'));
 
-stats.val_squidmag = values(startsWith(labels, 'squidmag'), :);
-stats.lab_squidmag = labels(startsWith(labels, 'squidmag'));
+stats.val_squidmag = stats.values(startsWith(stats.labels, 'squidmag'), :);
+stats.lab_squidmag = stats.labels(startsWith(stats.labels, 'squidmag'));
 
-stats.val_squidgrad = values(startsWith(labels, 'squidgrad'), :);
-stats.lab_squidgrad = labels(startsWith(labels, 'squidgrad'));
+stats.val_squidgrad = stats.values(startsWith(stats.labels, 'squidgrad'), :);
+stats.lab_squidgrad = stats.labels(startsWith(stats.labels, 'squidgrad'));
 
-stats.val_squideeg = values(startsWith(labels, 'squideeg'), :);
-stats.lab_squideeg = labels(startsWith(labels, 'squideeg'));
+stats.val_squideeg = stats.values(startsWith(stats.labels, 'squideeg'), :);
+stats.lab_squideeg = stats.labels(startsWith(stats.labels, 'squideeg'));
 
 %%
 list = {stats.val_opm stats.val_squidgrad; stats.val_opm stats.val_squidmag; stats.val_squidmag stats.val_squidgrad; stats.val_opmeeg stats.val_squideeg};
 save = zeros(size(stats.lab_opm));
 %save_stats = zeros(size(stats.lab_opm));
 statistics = table;
-table_label = replace(replace(labels(startsWith(labels, 'opm_'),:),'opm_', ''),'_', ', ');
+table_label = replace(replace(stats.labels(startsWith(stats.labels, 'opm_'),:),'opm_', ''),'_', ', ');
 statistics.label = table_label;
 
 for l = 1:size(list, 1)
-    [h, p] = ttest(abs(list{l,1}), abs(list{l,2})); % Calculating h and p-value.
-    save_stats = [save_stats; [h p]]; % Saving them
-
+    save_stats = [];
     for k = 1:size(stats.lab_opm)
+        [h, p] = ttest(abs(list{l,1}(k,:)), abs(list{l,2}(k,:))); % Calculating h and p-value.
+        save_stats = [save_stats; [h p]]; % Saving them
         if contains(stats.lab_opm(k), 'amplitude')
             save(k) = (mean(list{l,1}(k,:))-mean(list{l,2}(k,:)));
         end
@@ -427,7 +427,7 @@ for l = 1:size(list, 1)
     statistics.te2 = save;
 end
 
-    
+%% Loopen fungerar men vi overwriterar table, måste lösa det imorgon    
 
 
 %% Fix table
