@@ -300,7 +300,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'EEG*';
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
-        [opmeeg_timelocked, peak] = evoked_analysis(Evoked_opmeeg, Freqtag_opmeeg, params, save_path, peak); 
+        [opmeeg_timelocked, peak] = evoked_analysis(Evoked_opmeeg, params, save_path, peak); 
         peak = freqtag_analysis(Freqtag_opmeeg, params, save_path, peak);
         close all
 
@@ -310,7 +310,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'megmag';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
-        [squidmag_timelocked, peak] = evoked_analysis(Evoked_squid, Freqtag_squid, params, save_path, peak); 
+        [squidmag_timelocked, peak] = evoked_analysis(Evoked_squid, params, save_path, peak); 
         peak = freqtag_analysis(Freqtag_squid, params, save_path, peak);
         close all
 
@@ -319,7 +319,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'megplanar';
         params.amp_scaler = 1e15/100;
         params.amp_label = 'B [fT/cm]';
-        [squidgrad_timelocked, peak] = evoked_analysis(Evoked_squid, Freqtag_squid, params, save_path, peak); 
+        [squidgrad_timelocked, peak] = evoked_analysis(Evoked_squid, params, save_path, peak); 
         peak = freqtag_analysis(Freqtag_squid, params, save_path, peak);
         close all
 
@@ -330,7 +330,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'EEG*';
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
-        [squideeg_timelocked, peak] = evoked_analysis(Evoked_squideeg, Freqtag_squideeg, params, save_path, peak); 
+        [squideeg_timelocked, peak] = evoked_analysis(Evoked_squideeg, params, save_path, peak); 
         peak = freqtag_analysis(Freqtag_squideeg, params, save_path, peak);
         
         save(fullfile(save_path, [params.sub '_peaks']), 'peak' ,"-v7.3");
@@ -345,8 +345,9 @@ for i_sub = 1:size(subses,1)
 end
 
 %% --- Statistical analysis -----------------------------------------------
-values = [];
-for i_sub = 1:size(subses,1)
+stats.values = {};
+
+for i_sub = 1:11%:size(subses,1) % Det verkar som att 12 och 13 inte körde klart ordentligtend
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     
     % Paths
@@ -361,64 +362,89 @@ for i_sub = 1:size(subses,1)
 
     % Load the data
     load(fullfile(save_path, [params.sub '_peaks.mat']))
-    if i_sub == 1 % Det här pga att jag har kört koden med lite fel i label för alla andra och den här är den jag körde om för att få rätt labels
-        labels = peak.labels;
-        values = [values peak.values];
-    else
-    values = [values peak.values];
-    end
+    stats.values = [stats.values peak.values];
 end
-% labels = peak.labels;
+
+stats.labels = peak.labels;
 clear peak
+
+% Mean 1 and not 0 for ttest means that we have to subtract 1 from all
+% values ? ? ?? ?
+
+% Save all amplitudes 
+stats.val_amp = values(contains(labels, 'amplitude'), :);
+stats.lab_amp = labels(contains(labels, 'amplitude'));
+
+% All powers
+stats.val_pow = values(contains(labels, 'power'), :);
+stats.lab_pow = labels(contains(labels, 'power'));
+
+% All latencies
+stats.val_lat = values(contains(labels, 'latency'), :);
+stats.lab_lat = labels(contains(labels, 'latency'));
 
     % OPM vs SQUID-data
     % Statistiken görs för att jämföra OPM och SQUID över alla individer.
 
-    s_opm = values(startsWith(labels, 'opm_'), :);
-    s_opmeeg = values(startsWith(labels, 'opmeeg'), :);
-    s_squidmag = values(startsWith(labels, 'squidmag'), :);
-    s_squidgrad = values(startsWith(labels, 'squidgrad'), :);
-    s_squideeg = values(startsWith(labels, 'squideeg'), :);
+stats.val_opm = values(startsWith(labels, 'opm_'), :);
+stats.lab_opm = labels(startsWith(labels, 'opm_'));
 
+stats.val_opmeeg = values(startsWith(labels, 'opmeeg'), :);
+stats.lab_opmeeg = labels(startsWith(labels, 'opmeeg'));
+
+stats.val_squidmag = values(startsWith(labels, 'squidmag'), :);
+stats.lab_squidmag = labels(startsWith(labels, 'squidmag'));
+
+stats.val_squidgrad = values(startsWith(labels, 'squidgrad'), :);
+stats.lab_squidgrad = labels(startsWith(labels, 'squidgrad'));
+
+stats.val_squideeg = values(startsWith(labels, 'squideeg'), :);
+stats.lab_squideeg = labels(startsWith(labels, 'squideeg'));
+
+%%
+list = {stats.val_opm stats.val_squidgrad; stats.val_opm stats.val_squidmag; stats.val_squidmag stats.val_squidgrad; stats.val_opmeeg stats.val_squideeg};
+save = zeros(size(stats.lab_opm));
+%save_stats = zeros(size(stats.lab_opm));
 statistics = table;
 table_label = replace(replace(labels(startsWith(labels, 'opm_'),:),'opm_', ''),'_', ', ');
 statistics.label = table_label;
-save_stats1 = [];
-save_stats2 = [];
-save_stats3 = [];
-save_stats4 = [];
 
-% Stats som fås ut är en struct och har .tstats = value of test tatistics
-% .df = degrees of freedom of the test and .sd = pooled estimated population
-% standard deviation.
+for l = 1:size(list, 1)
+    [h, p] = ttest(abs(list{l,1}), abs(list{l,2})); % Calculating h and p-value.
+    save_stats = [save_stats; [h p]]; % Saving them
 
-for i = 1:size(table_label) % Going through the labels
-    
-    [h, p] = ttest(s_opm(i, :), s_squidgrad(i, :)); % Calculating h and p-value.
-    save_stats1 = [save_stats1; [h p]]; % Saving them
-
-    [h, p] = ttest(s_opm(i, :), s_squidmag(i, :));
-    save_stats2 = [save_stats2; [h p]];
-
-    [h, p] = ttest(s_squidmag(i, :), s_squidgrad(i, :));
-    save_stats3 = [save_stats3; [h p]];
-
-    [h, p] = ttest(s_opmeeg(i,:), s_squideeg(i,:));
-    save_stats4 = [save_stats4; [h p]];
+    for k = 1:size(stats.lab_opm)
+        if contains(stats.lab_opm(k), 'amplitude')
+            save(k) = (mean(list{l,1}(k,:))-mean(list{l,2}(k,:)));
+        end
+        if contains(stats.lab_opm(k), 'power')
+            save(k) = (mean(list{l,1}(k,:))/mean(list{l,2}(k,:)));
+        else % latency
+            save(k) = (mean(list{l,1}(k,:))-mean(list{l,2}(k,:)));
+        end
+    end
+    statistics.te = save_stats; % Putting the values in the table
+    statistics.te2 = save;
 end
 
+    
+
+
+%% Fix table
+    
     statistics.opm_vs_squidgrad = save_stats1; % Putting the values in the table
+    statistics.diff = save;
     statistics.opm_vs_squidmag = save_stats2;
     statistics.squidmag_vs_squidgrad = save_stats3;
     statistics.opmeeg_vs_squideeg = save_stats4;
 clear -regexp ^save_stats
 
-% Plotting :D
-h = figure;
-for row = 1:length(s_opm) % rader
-    boxplot(s_opm(row, :), s_squidgrad(row, :), s_opm);
-end
-grid on;
+% % Plotting :D
+% h = figure;
+% for row = 1:length(s_opm) % rader
+%     boxplot(s_opm(row, :), s_squidgrad(row, :), s_opm);
+% end
+% grid on;
 
 %% --- Group sensor level -------------------------------------------------
 if ~exist(fullfile(base_save_path,'figs'), 'dir')
