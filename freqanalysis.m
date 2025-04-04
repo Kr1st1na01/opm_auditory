@@ -8,7 +8,7 @@ epochs = ft_selectdata(cfg, data);
 cfg = [];
 cfg.covariance          = 'yes';
 cfg.covariancewindow    = 'prestim';
-timelock = ft_timelockanalysis(cfg, epochs); % labelxtime
+timelock = ft_timelockanalysis(cfg, epochs);
 
 cfg = [];
 cfg.output      = 'pow';
@@ -17,7 +17,7 @@ cfg.method      = 'mtmfft';
 cfg.taper       = 'hanning';             % Slepian sequence as tapers
 cfg.foi         = 30:1:50;             % Frequencies we want to estimate, total 21 frequencies
 cfg.pad = 2;
-FFT_timelocked = ft_freqanalysis(cfg, timelock); % LabelxFreq
+FFT_timelocked = ft_freqanalysis(cfg, timelock);
 
 % Plot TFR
 cfg = [];
@@ -120,7 +120,7 @@ while li < params.freqwin(end)
     ft_topoplotTFR(cfg, TFRhann_multi)
     title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
     colorbar
-    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_' params.condition '.jpg']))
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_' params.condition '_' int2str(fignum) '.jpg']))
     li = li+params.freqsteps;
     fignum = fignum+1;
 end

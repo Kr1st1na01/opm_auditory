@@ -21,7 +21,6 @@ end
 
 %% Set up fieldtrip
 addpath ('/home/krimat/Documents/MATLAB/fieldtrip') % Fieldtrip path
-%addpath(fullfile(base_matlab_path,'fieldtrip_private')) % Fieldtrip private functions
 addpath(project_scripts_path)
 ft_defaults
 
@@ -80,7 +79,7 @@ mri_files = {'00000001.dcm'
     '/nifti/anat/sub-15985_T1w.nii.gz'};
 
 %% Loop over subjects
-for i_sub = 1:size(subses,1)
+for i_sub = 9%1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
 
     %% Paths
@@ -88,7 +87,10 @@ for i_sub = 1:size(subses,1)
     save_path = fullfile(base_save_path,params.sub);
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
     if ~exist(save_path, 'dir')
-       mkdir(base_save_path)
+       mkdir(save_path)
+    end
+    if ~exist(fullfile(save_path,'figs'), 'dir')
+       mkdir(fullfile(save_path,'figs'))
     end
     meg_file = fullfile(raw_path, 'meg', 'AudOddMEG_proc-tsss+corr98+mc+avgHead_meg.fif');
     opm_file = fullfile(raw_path, 'osmeg', 'AudOddOPM_raw.fif');
@@ -225,57 +227,31 @@ for i_sub = 1:size(subses,1)
         
         ft_hastoolbox('mne', 1);
        
-        %% Efter att jag kört ICA under helgen så kan jag använda denna
+        %% Load data
         
-%         % Load data
-%         load(fullfile(save_path, [params.sub '_opm_cropped_ica.mat']))
-%         Evoked_opm = cropped_data;
-%         load(fullfile(save_path, [params.sub '_opm_long_ica.mat']))
-%         Freqtag_opm = long_data;
-% 
-%         load(fullfile(save_path, [params.sub '_opmeeg_cropped_ica.mat']))
-%         Evoked_opmeeg = cropped_data;
-%         load(fullfile(save_path, [params.sub '_opmeeg_long_ica.mat']))
-%         Freqtag_opmeeg = long_data;
-%     
-%         load(fullfile(save_path, [params.sub '_squid_cropped_ica.mat']))
-%         Evoked_squid = cropped_data;
-%         load(fullfile(save_path, [params.sub '_squid_long_ica.mat']))
-%         Freqtag_squid = long_data;
-% 
-%         load(fullfile(save_path, [params.sub '_squideeg_long_ica.mat']))
-%         Evoked_squideeg = cropped_data;
-%         load(fullfile(save_path, [params.sub '_squideeg_long_ica.mat']))
-%         Freqtag_squideeg = long_data;
-% 
-%         clear cropped_data
-%         clear long_data
-%         clear labels
-
-        %%
         % Load data
         load(fullfile(save_path, [params.sub '_opm_cropped_ica.mat']))
         Evoked_opm = cropped_data;
-        load(fullfile(save_path, [params.sub '_opm_TFR_ica.mat']))
-        Freqtag_opm = TFR_data;
+        load(fullfile(save_path, [params.sub '_opm_long_ica.mat']))
+        Freqtag_opm = long_data;
 
         load(fullfile(save_path, [params.sub '_opmeeg_cropped_ica.mat']))
         Evoked_opmeeg = cropped_data;
-        load(fullfile(save_path, [params.sub '_opmeeg_TFR_ica.mat']))
-        Freqtag_opmeeg = TFR_data;
+        load(fullfile(save_path, [params.sub '_opmeeg_long_ica.mat']))
+        Freqtag_opmeeg = long_data;
     
         load(fullfile(save_path, [params.sub '_squid_cropped_ica.mat']))
         Evoked_squid = cropped_data;
-        load(fullfile(save_path, [params.sub '_squid_TFR_ica.mat']))
-        Freqtag_squid = TFR_data;
+        load(fullfile(save_path, [params.sub '_squid_long_ica.mat']))
+        Freqtag_squid = long_data;
 
-        load(fullfile(save_path, [params.sub '_squideeg_cropped_ica.mat']))
+        load(fullfile(save_path, [params.sub '_squideeg_long_ica.mat']))
         Evoked_squideeg = cropped_data;
-        load(fullfile(save_path, [params.sub '_squideeg_TFR_ica.mat']))
-        Freqtag_squideeg = TFR_data;
+        load(fullfile(save_path, [params.sub '_squideeg_long_ica.mat']))
+        Freqtag_squideeg = long_data;
 
         clear cropped_data
-        clear TFR_data
+        clear long_data
         clear labels
 
 
@@ -347,104 +323,104 @@ end
 %% --- Statistical analysis -----------------------------------------------
 stats.values = [];
 
-for i_sub = 1:11%:size(subses,1) % Det verkar som att 12 och 13 inte körde klart ordentligtend
+for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     
     % Paths
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
-    if ~exist(save_path, 'dir')
-       mkdir(base_save_path)
-    end
-    if ~exist(fullfile(save_path,'statistics'), 'dir')
-       mkdir(fullfile(save_path,'statistics'))
-    end
 
     % Load the data
     load(fullfile(save_path, [params.sub '_peaks.mat']))
     stats.values = [stats.values peak.values];
 end
 
+if ~exist(fullfile(base_save_path,'statistics'), 'dir')
+   mkdir(fullfile(base_save_path,'statistics'))
+end
+
 stats.labels = peak.labels;
 clear peak
 
-% Mean 1 and not 0 for ttest means that we have to subtract 1 from all
-% values ? ? ?? ?
-
-% Save all amplitudes 
-stats.val_amp = stats.values(contains(stats.labels, 'amplitude'), :);
-stats.lab_amp = stats.labels(contains(stats.labels, 'amplitude'));
-
-% All powers
-stats.val_pow = stats.values(contains(stats.labels, 'power'), :);
-stats.lab_pow = stats.labels(contains(stats.labels, 'power'));
-
-% All latencies
-stats.val_lat = stats.values(contains(stats.labels, 'latency'), :);
-stats.lab_lat = stats.labels(contains(stats.labels, 'latency'));
-
-    % OPM vs SQUID-data
-    % Statistiken görs för att jämföra OPM och SQUID över alla individer.
-
 stats.val_opm = stats.values(startsWith(stats.labels, 'opm_'), :);
-stats.lab_opm = stats.labels(startsWith(stats.labels, 'opm_'));
-
 stats.val_opmeeg = stats.values(startsWith(stats.labels, 'opmeeg'), :);
-stats.lab_opmeeg = stats.labels(startsWith(stats.labels, 'opmeeg'));
-
 stats.val_squidmag = stats.values(startsWith(stats.labels, 'squidmag'), :);
-stats.lab_squidmag = stats.labels(startsWith(stats.labels, 'squidmag'));
-
 stats.val_squidgrad = stats.values(startsWith(stats.labels, 'squidgrad'), :);
-stats.lab_squidgrad = stats.labels(startsWith(stats.labels, 'squidgrad'));
-
 stats.val_squideeg = stats.values(startsWith(stats.labels, 'squideeg'), :);
-stats.lab_squideeg = stats.labels(startsWith(stats.labels, 'squideeg'));
 
-%%
+stats.lab = erase(stats.labels(startsWith(stats.labels, 'opm_')), 'opm_');
+
+
+
 list = {stats.val_opm stats.val_squidgrad; stats.val_opm stats.val_squidmag; stats.val_squidmag stats.val_squidgrad; stats.val_opmeeg stats.val_squideeg};
-save = zeros(size(stats.lab_opm));
-%save_stats = zeros(size(stats.lab_opm));
-statistics = table;
-table_label = replace(replace(stats.labels(startsWith(stats.labels, 'opm_'),:),'opm_', ''),'_', ', ');
-statistics.label = table_label;
+names = {'opm vs squidgrad', 'opm vs squidmag', 'squidmag vs squidgrad', 'opmeeg vs squideeg'};
 
-for l = 1:size(list, 1)
-    save_stats = [];
-    for k = 1:size(stats.lab_opm)
-        [h, p] = ttest(abs(list{l,1}(k,:)), abs(list{l,2}(k,:))); % Calculating h and p-value.
-        save_stats = [save_stats; [h p]]; % Saving them
-        if contains(stats.lab_opm(k), 'amplitude')
-            save(k) = (mean(list{l,1}(k,:))-mean(list{l,2}(k,:)));
-        end
-        if contains(stats.lab_opm(k), 'power')
-            save(k) = (mean(list{l,1}(k,:))/mean(list{l,2}(k,:)));
-        else % latency
-            save(k) = (mean(list{l,1}(k,:))-mean(list{l,2}(k,:)));
-        end
+% Fix tables
+i_amp = find(contains(stats.lab, 'amplitude'));
+i_pow = find(contains(stats.lab, 'power'));
+statistics_amp = table;
+statistics_pow = table;
+
+ratio = [];
+log_ratio = [];
+for i = 1:size(list,1)
+    ratio = abs(list{i,1})./abs(list{i,2}); % Nu är det opm/squidgrad, opm/squidmag, squidmag/squidgrad, opmeeg/squideeg
+    log_ratio = log10(ratio);
+
+    % Plot histogram
+    subplot(2,2,1)
+    histogram(ratio(i_amp,:), 'DisplayName', sprintf('Ratio for amplitude'));
+    legend
+    title(['Statistics - ' names(i)], Interpreter="none")
+
+    subplot(2,2,2)
+    histogram(log_ratio(i_amp,:), 'DisplayName', sprintf('Log ratio for amplitude'));
+    legend
+    title(['Statistics - ' names(i)], Interpreter="none")
+
+    subplot(2,2,3)
+    histogram(ratio(i_pow,:), 'DisplayName', sprintf('Ratio for power'), 'FaceColor', "#D95319");
+    legend
+    title(['Statistics - ' names(i)], Interpreter="none")
+
+    subplot(2,2,4)
+    histogram(log_ratio(i_pow,:), 'DisplayName', sprintf('Log ratio for power'), 'FaceColor', "#D95319");
+    legend
+    title(['Statistics - ' names(i)], Interpreter="none")
+
+    saveas(subplot, fullfile(base_save_path, 'statistics', [names(i) '_histogram_ratio vs log ratio' '.jpg']))
+
+    save = {};
+    for k = 1:size(i_amp)
+        [~, p] = ttest(abs(list{i,1}(i_amp(k),:)), abs(list{i,2}(i_amp(k),:))); % Calculating h and p-value
+        save{k,1} = p;
+        save{k,2} = mean(ratio(i_amp(k),:));
+        save{k,3} = mean(log_ratio(i_amp(k),:))*20;
+        [h, p] = ttest(log_ratio(i_amp(k),:)); % Calculating h and p-value for ratio
+        save{k,4} = [h,p];
     end
-    statistics.te = save_stats; % Putting the values in the table
-    statistics.te2 = save;
-end
+    statistics_pre = cell2table(save); % Putting the values in the table
+    statistics_pre.Properties.VariableNames = {names{i}, ['mean ratio ' int2str(i)], ['mean log ratio ' int2str(i) ' (dB)'], ['ttest on log ratio' int2str(i)]};
+    statistics_amp = [statistics_amp statistics_pre]; % Adding the table to the big table
 
-%% Loopen fungerar men vi overwriterar table, måste lösa det imorgon    
+    save = {};
+    for k = 1:size(i_pow)
+        [~, p] = ttest(abs(list{i,1}(i_pow(k),:)), abs(list{i,2}(i_pow(k),:))); % Calculating h and p-value
+        save{k,1} = p;
+        save{k,2} = mean(ratio(i_pow(k),:));
+        save{k,3} = mean(log_ratio(i_pow(k),:))*10;
+        [h, p] = ttest(log_ratio(i_pow(k),:)); % Calculating h and p-value for ratio
+        save{k,4} = [h,p];
+    end
+    statistics_pre = cell2table(save); % Putting the values in the table
+    statistics_pre.Properties.VariableNames = {names{i}, ['mean ratio ' int2str(i)], ['mean log ratio ' int2str(i) ' (dB)'], ['ttest on log ratio' int2str(i)]};
+    statistics_pow = [statistics_pow statistics_pre]; % Adding the table to the big table
+end  
+statistics_amp.Properties.RowNames =  replace(stats.lab(i_amp),'_', ', ');
+statistics_pow.Properties.RowNames = replace(stats.labels(i_pow),'_', ', ');
 
+clear statistics_pre p ratio log_ratio list i_amp i_pow i k 
 
-%% Fix table
-    
-    statistics.opm_vs_squidgrad = save_stats1; % Putting the values in the table
-    statistics.diff = save;
-    statistics.opm_vs_squidmag = save_stats2;
-    statistics.squidmag_vs_squidgrad = save_stats3;
-    statistics.opmeeg_vs_squideeg = save_stats4;
-clear -regexp ^save_stats
-
-% % Plotting :D
-% h = figure;
-% for row = 1:length(s_opm) % rader
-%     boxplot(s_opm(row, :), s_squidgrad(row, :), s_opm);
-% end
-% grid on;
 
 %% --- Group sensor level -------------------------------------------------
 if ~exist(fullfile(base_save_path,'figs'), 'dir')
