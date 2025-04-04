@@ -347,19 +347,25 @@ stats.val_opmeeg = stats.values(startsWith(stats.labels, 'opmeeg'), :);
 stats.val_squidmag = stats.values(startsWith(stats.labels, 'squidmag'), :);
 stats.val_squidgrad = stats.values(startsWith(stats.labels, 'squidgrad'), :);
 stats.val_squideeg = stats.values(startsWith(stats.labels, 'squideeg'), :);
+stats.lab = replace(erase(stats.labels(startsWith(stats.labels, 'opm_')), 'opm_'),'_', ', ');
 
-stats.lab = erase(stats.labels(startsWith(stats.labels, 'opm_')), 'opm_');
-
-
-
-list = {stats.val_opm stats.val_squidgrad; stats.val_opm stats.val_squidmag; stats.val_squidmag stats.val_squidgrad; stats.val_opmeeg stats.val_squideeg};
-names = {'opm vs squidgrad', 'opm vs squidmag', 'squidmag vs squidgrad', 'opmeeg vs squideeg'};
-
-% Fix tables
+% Saving indexes and tables
 i_amp = find(contains(stats.lab, 'amplitude'));
 i_pow = find(contains(stats.lab, 'power'));
-statistics_amp = table;
-statistics_pow = table;
+i_lat = find(contains(stats.lab, 'latency'));
+% statistics_amp = table;
+% statistics_pow = table;
+% statistics_lat = table;
+i_apl = {i_amp, i_pow, i_lat};
+
+% First row of tables is the labels
+statistics_amp = cell2table(stats.lab(i_amp), 'VariableNames',{'Labels'});
+statistics_pow = cell2table(stats.lab(i_pow), 'VariableNames',{'Labels'});
+statistics_lat = cell2table(stats.lab(i_lat), 'VariableNames',{'Labels'});
+
+list = {stats.val_opm stats.val_squidgrad; stats.val_opm stats.val_squidmag; stats.val_squidmag stats.val_squidgrad; stats.val_opmeeg stats.val_squideeg};
+comparisons = {'opm vs squidgrad', 'opm vs squidmag', 'squidmag vs squidgrad', 'opmeeg vs squideeg'};
+names = {'Amplitude', 'Power', 'Latency'; '#0072BD', '#D95319', '#77AC30'};
 
 ratio = [];
 log_ratio = [];
@@ -368,30 +374,25 @@ for i = 1:size(list,1)
     log_ratio = log10(ratio);
 
     % Plot histogram
-    subplot(2,2,1)
-    histogram(ratio(i_amp,:), 'DisplayName', sprintf('Ratio for amplitude'));
-    legend
-    title(['Statistics - ' names(i)], Interpreter="none")
-
-    subplot(2,2,2)
-    histogram(log_ratio(i_amp,:), 'DisplayName', sprintf('Log ratio for amplitude'));
-    legend
-    title(['Statistics - ' names(i)], Interpreter="none")
-
-    subplot(2,2,3)
-    histogram(ratio(i_pow,:), 'DisplayName', sprintf('Ratio for power'), 'FaceColor', "#D95319");
-    legend
-    title(['Statistics - ' names(i)], Interpreter="none")
-
-    subplot(2,2,4)
-    histogram(log_ratio(i_pow,:), 'DisplayName', sprintf('Log ratio for power'), 'FaceColor', "#D95319");
-    legend
-    title(['Statistics - ' names(i)], Interpreter="none")
-
-    saveas(subplot, fullfile(base_save_path, 'statistics', [names(i) '_histogram_ratio vs log ratio' '.jpg']))
+    h = figure;
+    for p = 1:numel(i_apl)
+        subplot(2,length(i_apl),p)
+        histogram(ratio(i_apl{p},:), 'DisplayName', names{1,p}, 'FaceColor', names{2,p});
+        title(names{1,p})
+        if p==1
+            ylabel('Ratio')
+        end
+        subplot(2,length(i_apl),p+length(i_apl))
+        histogram(log_ratio(i_apl{p},:), 'FaceColor', names{2,p});
+        if p==1
+        ylabel('Log ratio')
+        end
+    end
+    sgtitle(h, comparisons{i}) % Big plot title
+    saveas(h, fullfile(base_save_path, 'statistics', [comparisons{i} '_histogram_ratio vs log ratio' '.jpg']))
 
     save = {};
-    for k = 1:size(i_amp)
+    for k = 1:size(i_amp) % Amplitudes
         [~, p] = ttest(abs(list{i,1}(i_amp(k),:)), abs(list{i,2}(i_amp(k),:))); % Calculating h and p-value
         save{k,1} = p;
         save{k,2} = mean(ratio(i_amp(k),:));
@@ -400,11 +401,11 @@ for i = 1:size(list,1)
         save{k,4} = [h,p];
     end
     statistics_pre = cell2table(save); % Putting the values in the table
-    statistics_pre.Properties.VariableNames = {names{i}, ['mean ratio ' int2str(i)], ['mean log ratio ' int2str(i) ' (dB)'], ['ttest on log ratio' int2str(i)]};
+    statistics_pre.Properties.VariableNames = {comparisons{i}, ['mean ratio ' int2str(i)], ['mean log ratio ' int2str(i) ' (dB)'], ['ttest on log ratio' int2str(i)]};
     statistics_amp = [statistics_amp statistics_pre]; % Adding the table to the big table
 
     save = {};
-    for k = 1:size(i_pow)
+    for k = 1:size(i_pow) % Power
         [~, p] = ttest(abs(list{i,1}(i_pow(k),:)), abs(list{i,2}(i_pow(k),:))); % Calculating h and p-value
         save{k,1} = p;
         save{k,2} = mean(ratio(i_pow(k),:));
@@ -413,12 +414,33 @@ for i = 1:size(list,1)
         save{k,4} = [h,p];
     end
     statistics_pre = cell2table(save); % Putting the values in the table
-    statistics_pre.Properties.VariableNames = {names{i}, ['mean ratio ' int2str(i)], ['mean log ratio ' int2str(i) ' (dB)'], ['ttest on log ratio' int2str(i)]};
+    statistics_pre.Properties.VariableNames = {comparisons{i}, ['mean ratio ' int2str(i)], ['mean log ratio ' int2str(i) ' (dB)'], ['ttest on log ratio' int2str(i)]};
     statistics_pow = [statistics_pow statistics_pre]; % Adding the table to the big table
-end  
-statistics_amp.Properties.RowNames =  replace(stats.lab(i_amp),'_', ', ');
-statistics_pow.Properties.RowNames = replace(stats.labels(i_pow),'_', ', ');
+    save = {};
 
+    for k = 1:size(i_lat) % Latency
+        [~, p] = ttest(abs(list{i,1}(i_lat(k),:)), abs(list{i,2}(i_lat(k),:))); % Calculating h and p-value
+        save{k,1} = p;
+        save{k,2} = mean(ratio(i_lat(k),:));
+        save{k,3} = mean(log_ratio(i_lat(k),:))*20;
+        [h, p] = ttest(log_ratio(i_lat(k),:)); % Calculating h and p-value for ratio
+        save{k,4} = [h,p];
+    end
+    statistics_pre = cell2table(save); % Putting the values in the table
+    statistics_pre.Properties.VariableNames = {comparisons{i}, ['mean ratio ' int2str(i)], ['mean log ratio ' int2str(i) ' (dB)'], ['ttest on log ratio' int2str(i)]};
+    statistics_lat = [statistics_lat statistics_pre]; % Adding the table to the big table
+end  
+
+% Row names but when saved as cvs or xlsx it does not show
+% statistics_amp.Properties.RowNames = replace(stats.lab(i_amp),'_', ', ');
+% statistics_pow.Properties.RowNames = replace(stats.lab(i_pow),'_', ', ');
+% statistics_lat.Properties.RowNames = replace(stats.lab(i_lat),'_', ', ');
+
+writetable(statistics_amp, fullfile(base_save_path, 'statistics', [comparisons{i} '_table_amplitudes.csv']))
+writetable(statistics_pow, fullfile(base_save_path, 'statistics', [comparisons{i} '_table_power.csv']))
+writetable(statistics_lat, fullfile(base_save_path, 'statistics', [comparisons{i} '_table_latency.csv']))
+
+close all
 clear statistics_pre p ratio log_ratio list i_amp i_pow i k 
 
 
