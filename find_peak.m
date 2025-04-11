@@ -33,10 +33,10 @@ function [tmp, peak] = find_peak(data, params, peak)
     end
 
     % Statistics
-    peak.labels(end+1,1) = {[params.modality '_Evoked data_' params.condition '_amplitude']}; % Save amplitude
+    peak.labels(end+1,1) = {[params.modality '_Evoked data_' params.condition '_amplitude ' params.amp_label]}; % Save amplitude
     peak.values = [peak.values; tmp.amplitude];
 
-    peak.labels(end+1,1) = {[params.modality '_Evoked data_' params.condition '_latency']}; % Save latency
+    peak.labels(end+1,1) = {[params.modality '_Evoked data_' params.condition '_latency [s]']}; % Save latency
     peak.values = [peak.values; tmp.latency];
 
 

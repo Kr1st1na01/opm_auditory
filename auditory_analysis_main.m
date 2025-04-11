@@ -79,7 +79,7 @@ mri_files = {'00000001.dcm'
     '/nifti/anat/sub-15985_T1w.nii.gz'};
 
 %% Loop over subjects
-for i_sub = 9%1:size(subses,1)
+for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
 
     %% Paths
@@ -193,7 +193,7 @@ for i_sub = 9%1:size(subses,1)
     end
 end
 
-%% Loop over subjects for timelocking
+%% Loop over subjects freq tag evoked analysis
 
 for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
@@ -265,6 +265,7 @@ for i_sub = 1:size(subses,1)
         params.chs = '*bz';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
+        params.pow_label = 'Power [T^2]';
         [opm_timelocked, peak] = evoked_analysis(Evoked_opm, params, save_path, peak); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
         peak = freqtag_analysis(Freqtag_opm, params, save_path, peak);
         close all
@@ -276,6 +277,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'EEG*';
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
+        params.pow_label = 'Power [V^2]';        
         [opmeeg_timelocked, peak] = evoked_analysis(Evoked_opmeeg, params, save_path, peak); 
         peak = freqtag_analysis(Freqtag_opmeeg, params, save_path, peak);
         close all
@@ -286,6 +288,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'megmag';
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
+        params.pow_label = 'Power [T^2]';
         [squidmag_timelocked, peak] = evoked_analysis(Evoked_squid, params, save_path, peak); 
         peak = freqtag_analysis(Freqtag_squid, params, save_path, peak);
         close all
@@ -295,6 +298,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'megplanar';
         params.amp_scaler = 1e15/100;
         params.amp_label = 'B [fT/cm]';
+        params.pow_label = 'Power [T^2/cm^2]';
         [squidgrad_timelocked, peak] = evoked_analysis(Evoked_squid, params, save_path, peak); 
         peak = freqtag_analysis(Freqtag_squid, params, save_path, peak);
         close all
@@ -306,6 +310,7 @@ for i_sub = 1:size(subses,1)
         params.chs = 'EEG*';
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
+        params.pow_label = 'Power [V^2]';
         [squideeg_timelocked, peak] = evoked_analysis(Evoked_squideeg, params, save_path, peak); 
         peak = freqtag_analysis(Freqtag_squideeg, params, save_path, peak);
         
@@ -356,7 +361,7 @@ i_lat = find(contains(stats.lab, 'latency'));
 % statistics_amp = table;
 % statistics_pow = table;
 % statistics_lat = table;
-i_apl = {i_amp, i_pow, i_lat};
+i_ap = {i_amp, i_pow};
 
 % First row of tables is the labels
 statistics_amp = cell2table(stats.lab(i_amp), 'VariableNames',{'Labels'});
@@ -368,23 +373,34 @@ comparisons = {'opm vs squidgrad', 'opm vs squidmag', 'squidmag vs squidgrad', '
 names = {'Amplitude', 'Power', 'Latency'; '#0072BD', '#D95319', '#77AC30'};
 
 ratio = [];
+diff = [];
 log_ratio = [];
 for i = 1:size(list,1)
-    ratio = abs(list{i,1})./abs(list{i,2}); % Nu är det opm/squidgrad, opm/squidmag, squidmag/squidgrad, opmeeg/squideeg
+    ratio = abs(list{i,1})./abs(list{i,2}); % Now the list will contain one comparision at the moment, opm/squidgrad, opm/squidmag, squidmag/squidgrad, opmeeg/squideeg
     log_ratio = log10(ratio);
-
-    % Plot histogram
+    diff = abs(list{i,1})-abs(list{i,2} );
+      
     h = figure;
-    for p = 1:numel(i_apl)
-        subplot(2,length(i_apl),p)
-        histogram(ratio(i_apl{p},:), 'DisplayName', names{1,p}, 'FaceColor', names{2,p});
-        title(names{1,p})
-        if p==1
-            ylabel('Ratio')
+    for p = 1:numel(i_lat) % Latency plot
+        histogram(diff(i_lat(p),:), 'FaceColor', names{2,end}); % Pick out the latency values based on the index in i_apl
+        ylabel([names{1,end} ' Difference'])
+    end
+    sgtitle(h, comparisons{i}) % Big plot title
+    saveas(h, fullfile(base_save_path, 'statistics', [comparisons{i} '_histogram_latency difference.jpg']))
+
+    h = figure;
+    for hp = 1:numel(i_ap)    
+        subplot(2,length(i_ap),hp) % Plot histogram
+        histogram(ratio(i_ap{hp},:), 'DisplayName', names{1,hp}, 'FaceColor', names{2,hp}); % Pick out the ratio values based on the index in i_apl
+        title(names{1,hp})
+        if hp==1
+        ylabel('Ratio')
         end
-        subplot(2,length(i_apl),p+length(i_apl))
-        histogram(log_ratio(i_apl{p},:), 'FaceColor', names{2,p});
-        if p==1
+       
+        % Plotting all log ratios       
+        subplot(2,length(i_ap),hp+length(i_ap))
+        histogram(log_ratio(i_ap{hp},:), 'FaceColor', names{2,hp});
+        if hp==1
         ylabel('Log ratio')
         end
     end
@@ -395,8 +411,7 @@ for i = 1:size(list,1)
     for k = 1:size(i_amp) % Amplitudes
         [~, p] = ttest(abs(list{i,1}(i_amp(k),:)), abs(list{i,2}(i_amp(k),:))); % Calculating h and p-value
         save{k,1} = p;
-        save{k,2} = mean(ratio(i_amp(k),:));
-        save{k,3} = mean(log_ratio(i_amp(k),:))*20;
+        save{k,2} = mean(diff(i_amp(k),:));
         [h, p] = ttest(log_ratio(i_amp(k),:)); % Calculating h and p-value for ratio
         save{k,4} = [h,p];
     end
@@ -421,13 +436,12 @@ for i = 1:size(list,1)
     for k = 1:size(i_lat) % Latency
         [~, p] = ttest(abs(list{i,1}(i_lat(k),:)), abs(list{i,2}(i_lat(k),:))); % Calculating h and p-value
         save{k,1} = p;
-        save{k,2} = mean(ratio(i_lat(k),:));
-        save{k,3} = mean(log_ratio(i_lat(k),:))*20;
-        [h, p] = ttest(log_ratio(i_lat(k),:)); % Calculating h and p-value for ratio
-        save{k,4} = [h,p];
+        save{k,2} = mean(diff(i_lat(k),:));
+        [h, p] = ttest(diff(i_lat(k),:)); % Calculating h and p-value for ratio
+        save{k,3} = [h,p];
     end
     statistics_pre = cell2table(save); % Putting the values in the table
-    statistics_pre.Properties.VariableNames = {comparisons{i}, ['mean ratio ' int2str(i)], ['mean log ratio ' int2str(i) ' (dB)'], ['ttest on log ratio' int2str(i)]};
+    statistics_pre.Properties.VariableNames = {comparisons{i}, ['mean difference ' int2str(i)], ['ttest on difference ' int2str(i)]};
     statistics_lat = [statistics_lat statistics_pre]; % Adding the table to the big table
 end  
 

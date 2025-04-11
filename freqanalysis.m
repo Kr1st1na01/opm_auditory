@@ -1,5 +1,6 @@
 function [peak] = freqanalysis(data, params, save_path, peak)
-% Här gör vi TFR
+% FFT and TFR is done here
+
 cfg = [];
 cfg.trials = params.trials;
 epochs = ft_selectdata(cfg, data);
@@ -14,12 +15,12 @@ cfg = [];
 cfg.output      = 'pow';
 cfg.channel     = 'all';
 cfg.method      = 'mtmfft';
-cfg.taper       = 'hanning';             % Slepian sequence as tapers
+cfg.taper       = 'hanning';           
 cfg.foi         = 30:1:50;             % Frequencies we want to estimate, total 21 frequencies
 cfg.pad = 2;
 FFT_timelocked = ft_freqanalysis(cfg, timelock);
 
-% Plot TFR
+% Plot FFT
 cfg = [];
 cfg.parameter       = 'powspctrm';
 cfg.layout          = params.layout;
@@ -35,11 +36,12 @@ saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag
 h = figure;
 [pow, pks] = max(FFT_timelocked.powspctrm(:,ismember(params.specificfreq, FFT_timelocked.freq)));
 peak.values = [peak.values; pow];
-peak.labels(end+1,1) = {[params.modality '_Freq tag_FFT_' params.condition '_freq ' int2str(params.specificfreq) '_power']};
+peak.labels(end+1,1) = {[params.modality '_Freq tag_FFT_' params.condition '_freq ' int2str(params.specificfreq) '_power' params.pow_label]};
 cfg.channel = pks;
 ft_singleplotER(cfg, FFT_timelocked)
+xlabel('frequency [Hz]')
+ylabel(params.pow_label)
 title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
-colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_max sensor ' params.condition '.jpg']))
 
 % Topoplot
@@ -52,7 +54,7 @@ cfg.xlim = [params.pretimwin params.posttimwin];
 ft_topoplotTFR(cfg, FFT_timelocked)
 title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_Topoplot_' params.condition '.jpg']))
 
 
 %% TFR: multitaper
@@ -88,6 +90,8 @@ h = figure;
 val = nanmean(TFRhann_multi.powspctrm(pks, 10, :));
 cfg.channel = pks;
 ft_singleplotTFR(cfg, TFRhann_multi)
+xlabel('time [s]')
+ylabel('frequency [Hz]')
 title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_ max sensor ' params.condition '.jpg']))
