@@ -1,6 +1,6 @@
-function [squidmag_dipole, squidgrad_dipole, opm_dipole, squideeg_dipole, opmeeg_dipole] = fit_dipoles(save_path,squidmag_timelocked,squidgrad_timelocked,squideeg_timelocked,opm_timelocked,opmeeg_timelocked,headmodels,mri,latency,params)
-%UNTITLED3 Summary of this function goes here
-%   Detailed explanation goes here
+function [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path,squidmag_timelocked,squidgrad_timelocked,opm_timelocked,headmodels,mri,MMN_squidmag, MMN_squidgrad, MMN_opm, params, peak)
+
+
 
 colors = [[0 0.4470 0.7410]; % blue
     [0.8500 0.3250 0.0980]; % red
@@ -17,7 +17,6 @@ cfg.headmodel    = headmodels.headmodel_meg;
 sourcemodel    = ft_prepare_sourcemodel(cfg);
 
 %% Fit dipoles
-for i_phalange = 1:5
     % MEG
     cfg = [];
     cfg.gridsearch      = 'yes';           
@@ -27,21 +26,21 @@ for i_phalange = 1:5
     cfg.senstype        = 'meg';            
     cfg.channel         = 'megmag';         
     cfg.nonlinear       = 'yes';           
-    cfg.latency         = latency{i_phalange}.squidmag + [-0.01 0.01];
+    cfg.latency         = MMN_squidmag.time(1,401) + [-0.01 0.01];
     cfg.dipfit.checkinside = 'yes';
     %cfg.dipfit.noisecov = meg_timelocked{i_phalange}.cov;
-    squidmag_dipole{i_phalange} = ft_dipolefitting(cfg, squidmag_timelocked{i_phalange});
+    squidmag_dipole = ft_dipolefitting(cfg, squidmag_timelocked);
     
-    cfg.latency         = latency{i_phalange}.squidgrad + [-0.01 0.01];   
+    cfg.latency         = MMN.squidgrad + [-0.01 0.01];   
     cfg.channel         = 'megplanar';           
-    squidgrad_dipole{i_phalange} = ft_dipolefitting(cfg, squidgrad_timelocked{i_phalange});
+    squidgrad_dipole = ft_dipolefitting(cfg, squidgrad_timelocked);
 
     if ~isempty(headmodels.headmodel_eeg)
         cfg.headmodel       = headmodels.headmodel_eeg;    
         cfg.senstype        = 'eeg';            
         cfg.channel         = 'eeg';   
         cfg.latency         = latency{i_phalange}.squideeg + [-0.01 0.01];   
-        squideeg_dipole{i_phalange} = ft_dipolefitting(cfg, squideeg_timelocked{i_phalange});
+        squideeg_dipole = ft_dipolefitting(cfg, squideeg_timelocked);
     else 
         squideeg_dipole = [];
     end
@@ -55,44 +54,44 @@ for i_phalange = 1:5
     cfg.senstype        = 'meg';            
     cfg.channel         = '*bz';        
     cfg.nonlinear       = 'yes';            
-    cfg.latency         = latency{i_phalange}.opm + [-0.01 0.01];   
+    cfg.latency         = latency.opm + [-0.01 0.01];   
     cfg.dipfit.checkinside = 'yes';
     %cfg.dipfit.noisecov = opm_timelocked{i_phalange}.cov;
-    opm_dipole{i_phalange} = ft_dipolefitting(cfg, opm_timelocked{i_phalange});
+    opm_dipole = ft_dipolefitting(cfg, opm_timelocked);
 
     if ~isempty(headmodels.headmodel_eeg)
         cfg.headmodel       = headmodels.headmodel_eeg;  
         cfg.senstype        = 'eeg';           
         cfg.channel         = 'eeg';        
         cfg.latency         = latency{i_phalange}.opmeeg + [-0.01 0.01];   
-        opmeeg_dipole{i_phalange} = ft_dipolefitting(cfg, opmeeg_timelocked{i_phalange});
+        opmeeg_dipole = ft_dipolefitting(cfg, opmeeg_timelocked);
     else 
         opmeeg_dipole = [];
     end
 
     % Plot OPM vs SQUID
-    pos_mag = squidmag_dipole{i_phalange}.dip.pos;
-    [~,idx] = max(vecnorm(squidmag_dipole{i_phalange}.dip.mom,2,1));
-    ori_mag = squidmag_dipole{i_phalange}.dip.mom(:,idx);
+    pos_mag = squidmag_dipole.dip.pos;
+    [~,idx] = max(vecnorm(squidmag_dipole.dip.mom,2,1));
+    ori_mag = squidmag_dipole.dip.mom(:,idx);
 
-    pos_gad = squidgrad_dipole{i_phalange}.dip.pos;
-    [~,idx] = max(vecnorm(squidgrad_dipole{i_phalange}.dip.mom,2,1));
-    ori_grad = squidgrad_dipole{i_phalange}.dip.mom(:,idx);
+    pos_gad = squidgrad_dipole.dip.pos;
+    [~,idx] = max(vecnorm(squidgrad_dipole.dip.mom,2,1));
+    ori_grad = squidgrad_dipole.dip.mom(:,idx);
     
-    pos_opm = opm_dipole{i_phalange}.dip.pos;
+    pos_opm = opm_dipole.dip.pos;
     %pos_opm = opm_trans.transformPointsInverse(pos_opm);
-    [~,idx] = max(vecnorm(opm_dipole{i_phalange}.dip.mom,2,1));
-    ori_opm = -opm_dipole{i_phalange}.dip.mom(:,idx);
+    [~,idx] = max(vecnorm(opm_dipole.dip.mom,2,1));
+    ori_opm = -opm_dipole.dip.mom(:,idx);
 
     if ~isempty(headmodels.headmodel_eeg)
-        pos_eeg = squideeg_dipole{i_phalange}.dip.pos;
-        [~,idx] = max(vecnorm(squideeg_dipole{i_phalange}.dip.mom,2,1));
-        ori_eeg = squideeg_dipole{i_phalange}.dip.mom(:,idx);
+        pos_eeg = squideeg_dipole.dip.pos;
+        [~,idx] = max(vecnorm(squideeg_dipole.dip.mom,2,1));
+        ori_eeg = squideeg_dipole.dip.mom(:,idx);
     
-        pos_opmeeg = opmeeg_dipole{i_phalange}.dip.pos;
+        pos_opmeeg = opmeeg_dipole.dip.pos;
         %pos_opmeeg = opm_trans.transformPointsInverse(pos_opmeeg);
-        [~,idx] = max(vecnorm(opmeeg_dipole{i_phalange}.dip.mom,2,1));
-        ori_opmeeg = -opmeeg_dipole{i_phalange}.dip.mom(:,idx);
+        [~,idx] = max(vecnorm(opmeeg_dipole.dip.mom,2,1));
+        ori_opmeeg = -opmeeg_dipole.dip.mom(:,idx);
 
         h = figure;
         ft_plot_dipole(pos_eeg,ori_eeg,'color',colors(1,:))
@@ -100,9 +99,9 @@ for i_phalange = 1:5
         ft_plot_dipole(pos_opmeeg,ori_opmeeg,'color',colors(2,:))
         ft_plot_headmodel(headmodels.headmodel_meg,'EdgeAlpha',0,'FaceAlpha',0.3,'FaceColor',[229 194 152]/256,'unit','cm') 
         hold off
-        title([params.phalange_labels{i_phalange} ' (SQEEG-OPMEEG = ' num2str(norm((pos_eeg-pos_opmeeg))*10,'%.1f') 'mm)'])
+        title([params.trigger_labels ' (SQEEG-OPMEEG = ' num2str(norm((pos_eeg-pos_opmeeg))*10,'%.1f') 'mm)'])
         legend('SQUIDEEG','OPMEEG','brain')
-        saveas(h, fullfile(save_path, 'figs', [params.sub '_dipfit_SQUIDEEGvOPMEEG_ph-' params.phalange_labels{i_phalange} '.jpg']))
+        saveas(h, fullfile(save_path, 'figs', [params.sub '_dipfit_SQUIDEEGvOPMEEG_ph-' params.trigger_labels '.jpg']))
         close
     end
 
@@ -115,9 +114,9 @@ for i_phalange = 1:5
     hold off
     title([params.phalange_labels{i_phalange} ' (SQMAG-OPM = ' num2str(norm(pos_mag-pos_opm)*10,'%.1f') 'mm / SQGRAD-OPM = ' num2str(norm(pos_gad-pos_opm)*10,'%.1f') 'mm)'])
     legend('SQUIDMAG','OPM','SQUIDPLANAR','brain')
-    saveas(h, fullfile(save_path, 'figs', [params.sub '_dipfit_SQUIDvOPM_ph-' params.phalange_labels{i_phalange} '.jpg']))
+    saveas(h, fullfile(save_path, 'figs', [params.sub '_dipfit_SQUIDvOPM_ph-' params.trigger_lab '.jpg']))
     close
-end
+
 close all
 
 %% Plot phalanges jointly
@@ -272,5 +271,3 @@ saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_dipfit-0
 close all
 %% Save 
 save(fullfile(save_path, 'dipoles'), 'squidmag_dipole', 'squidgrad_dipole', 'opm_dipole', 'squideeg_dipole', 'opmeeg_dipole'); disp('done');
-
-end
