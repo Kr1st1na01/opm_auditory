@@ -93,7 +93,7 @@ for coil = 1:length(hpi_chs)
     cfg.parameter = 'avg';
     cfg.channel = params.include_chs;
     h = figure; ft_topoplotER(cfg,timelocked); colorbar
-    saveas(h, fullfile(save_path, 'figs', ['hpi_topo_coil-' num2str(coil) '.jpg']))
+    saveas(h, fullfile(save_path, 'source analysis', ['hpi_topo_coil-' num2str(coil) '.jpg']))
     close
     disp(['Max amp: ' num2str(max(abs(timelocked.avg(find(contains(timelocked.label,'bz'))))))])
 
@@ -191,7 +191,7 @@ scatter3(hpi_polhemus(dip_include,1),hpi_polhemus(dip_include,2),hpi_polhemus(di
 hold off
 title(['HPI fits (mean dist = ' num2str(dist*10) ' mm)'])
 legend
-saveas(h, fullfile(save_path, 'figs', 'hpi_fits.jpg'))
+saveas(h, fullfile(save_path, 'source analysis', 'hpi_fits.jpg'))
 
 %% Save 
 save(fullfile(save_path, 'hpi_fit'), 'hpi_fit'); disp('done');

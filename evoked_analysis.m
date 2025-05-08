@@ -62,15 +62,26 @@ params.condition = 'Go';
 timelocked_G = timelock(data, params, save_path);
 plot_butterfly(timelocked_G, params, save_path)
 
-% Max channel
+timelocked_G100 = timelocked_G;
+timelocked_G300 = timelocked_G;
+
+% Max channel M100
 params.pretimwin = 0.08;
 params.posttimwin = 0.12;
-params.condition = 'M100_Go';
+params.condition = 'M100_Go max sensor';
 [tmp, peak] = find_peak(timelocked_G, params, peak);
 
-timelocked_G.avg = timelocked_G.avg(tmp.i_peakch,:);
+timelocked_G100.avg = timelocked_G.avg(tmp.i_peakch,:);
 plot_butterfly(timelocked_G, params, save_path)
 
+% Max channel M300
+params.pretimwin = 0.27;
+params.posttimwin = 0.33;
+params.condition = 'M300_Go max sensor';
+[tmp, peak] = find_peak(timelocked_G, params, peak);
+
+timelocked_G300.avg = timelocked_G.avg(tmp.i_peakch,:);
+plot_butterfly(timelocked_G, params, save_path)
 %% Saving trigger indeces
 pre_NG = [];
 NG = find(ismember(data.trialinfo, [params.trigger_code(2) params.trigger_code(4)])); % all No Go triggers saved in one place
@@ -89,33 +100,42 @@ plot_butterfly(timelocked_pre, params, save_path)
 % No Go
 params.trials = NG;
 params.condition = 'No Go';
-timelocked = timelock(data, params, save_path);
-plot_butterfly(timelocked, params, save_path)
+timelocked_NG = timelock(data, params, save_path);
+plot_butterfly(timelocked_NG, params, save_path)
 
 %% MMN
 params.trials = NG;
 params.condition = 'MMN';
-timelockedMMN = timelocked;
-timelockedMMN.avg = timelocked.avg - timelocked_pre.avg; % Here the oddball timelocked data average is changed to represent the difference (MMN) in response
+timelockedMMN = timelocked_NG;
+timelockedMMN.avg = timelocked_NG.avg - timelocked_pre.avg; % Here the oddball timelocked data average is changed to represent the difference (MMN) in response
 plot_butterfly(timelockedMMN, params, save_path)
 
-%% M100 plots
+%% Plots
 % pre No Go
 params.condition = 'M100_pre No Go';
 [tmp, peak] = find_peak(timelocked_pre, params, peak);
 timelocked_pre.avg = timelocked_pre.avg(tmp.i_peakch,:);
 plot_butterfly(timelocked_pre, params, save_path)
 
-% No Go
-params.condition = 'M100_No Go';
-[tmp, peak] = find_peak(timelocked, params, peak);
-timelocked.avg = timelocked.avg(tmp.i_peakch,:);
-plot_butterfly(timelocked, params, save_path)
+timelocked_NG100 = timelocked_NG;
+timelocked_NG300 = timelocked_NG;
+
+% No Go M100
+params.condition = 'M100_No Go trigger';
+[tmp, peak] = find_peak(timelocked_NG100, params, peak);
+timelocked_NG100.avg = timelocked_NG100.avg(tmp.i_peakch,:);
+plot_butterfly(timelocked_NG100, params, save_path)
+
+% No Go M300
+params.condition = 'M300_No Go trigger';
+[tmp, peak] = find_peak(timelocked_NG300, params, peak);
+timelocked.avg = timelocked_NG300.avg(tmp.i_peakch,:);
+plot_butterfly(timelocked_NG300, params, save_path)
 
 %% MMN and M300
-params.pretimwin = 0.27; % for find_peak.m
-params.posttimwin = 0.33;
-params.condition = 'M300_MMN';
+params.pretimwin = 0.1; % for find_peak.m
+params.posttimwin = 0.25;
+params.condition = 'MMN';
 
 [tmp, peak] = find_peak(timelockedMMN, params, peak);
 

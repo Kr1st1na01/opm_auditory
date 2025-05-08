@@ -20,6 +20,9 @@ cfg.foi         = 30:1:50;             % Frequencies we want to estimate, total 
 cfg.pad = 2;
 FFT_timelocked = ft_freqanalysis(cfg, timelock);
 
+% Plot butterfly on the timelocked data
+plot_butterfly(FFT_timelocked, params, save_path)
+
 % Plot FFT
 cfg = [];
 cfg.parameter       = 'powspctrm';
@@ -71,6 +74,9 @@ cfg.pad = 2;
 
 TFRhann_multi = ft_freqanalysis(cfg, epochs); % The power spectrum is calculated
 
+% Plot butterfly on the timelocked data
+plot_butterfly(TFR_timelocked, params, save_path)
+
 % Plot TFR
 cfg = [];
 cfg.parameter       = 'powspctrm';
@@ -94,7 +100,7 @@ xlabel('time [s]')
 ylabel('frequency [Hz]')
 title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_ max sensor ' params.condition '.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_max sensor ' params.condition '.jpg']))
 
 % Big Topoplot
 h = figure;

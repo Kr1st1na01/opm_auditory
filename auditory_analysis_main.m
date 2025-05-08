@@ -193,7 +193,7 @@ for i_sub = 1:size(subses,1)
     end
 end
 
-%% Loop over subjects freq tag evoked analysis
+%% Loop over subjects 
 
 for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
@@ -449,7 +449,7 @@ clear k save ratio log_ratio list i_amp i_pow h l names p stats diff comparisons
 clear -regexp i_ statistics_
 
 %% --- Group sensor level -------------------------------------------------
-% Load files
+% Load files with peak values
 stats.values = [];
 
 for i_sub = 1:size(subses,1)
@@ -487,6 +487,7 @@ stats.val_squideeg = stats.values(startsWith(stats.labels, 'squideeg'), :);
 stats.val_squideeg = stats.val_squideeg(i_lat,:);
 
 
+% Aligning head- and sourcemodel
 for i_sub = 2 %2:size(subses,1) % Skip first subject
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
@@ -531,13 +532,13 @@ for i_sub = 2 %2:size(subses,1) % Skip first subject
     hold on; 
     ft_plot_mesh(meshes(3),'EdgeAlpha',0,'FaceAlpha',0.2,'FaceColor',[229 194 152]/256,'unit','cm')
     ft_plot_headmodel(headmodels.headmodel_meg, 'facealpha', 0.25, 'edgealpha', 0.25)
-    ft_plot_sens(opm_timelockedT.grad,'unit','cm') % Den här har inte samma transform som headmodel, sensorerna visas som circlar
+    ft_plot_sens(opm_timelockedT.grad,'unit','cm') 
     ft_plot_sens(opmeeg_timelockedT.elec,'unit','cm', 'style', '.r','elecsize',20)
     hold off;
     title('OPM-MEG')
     view([-140 10])
-    savefig(h, fullfile(save_path, 'opm_layout2.fig'))
-    saveas(h, fullfile(save_path, 'opm_layout2.jpg'))
+    savefig(h, fullfile(save_path, 'source analysis', 'opm_layout2.fig'))
+    saveas(h, fullfile(save_path, 'source analysis', 'opm_layout2.jpg'))
 
     % MEG
     h=figure; 
@@ -559,42 +560,58 @@ for i_sub = 2 %2:size(subses,1) % Skip first subject
     save(fullfile(save_path, 'source analysis', [params.sub '_opm_timelockedT']), 'opm_timelockedT', '-v7.3');
     save(fullfile(save_path, 'source analysis', [params.sub '_opmeeg_timelockedT']), 'opmeeg_timelockedT', '-v7.3');
     save(fullfile(save_path, 'source analysis', [params.sub '_sourcemodel']), 'sourcemodel', '-v7.3');
-    save(fullfile(save_path, [params.sub '_sourcemodel_inflated']), 'sourcemodel_inflated', '-v7.3');
+    %save(fullfile(save_path, [params.sub '_sourcemodel_inflated']), 'sourcemodel_inflated', '-v7.3');
 
-    disp(['Required files not found. No transformed OPM/sourcemodel data was saved for ' params.sub])
 end
 
-%% Dipole fits
- if exist(fullfile(save_path, 'source analysis', 'dipoles.mat'),'file') && overwrite.dip==false
+            % What do I want to look at? MMN,ososv
+    %         list = ['Std','MMN'];
+    %         for i = 1:length(list)
+    %             ind = find(contains(list(i)));
+    %         end
+    %% Dipole fits
+for i_sub = 2 %2:size(subses,1) % Skip first subject
+    ft_hastoolbox('mne',1);
+    params.sub = ['sub_' num2str(i_sub,'%02d')];
+    save_path = fullfile(base_save_path, params.sub);
+    shared_folder_path = fullfile('/home/share/opm_auditory', params.sub);
+    raw_path = fullfile(base_data_path,'MEG',['NatMEG' subses{i_sub,1}], subses{i_sub,2});
+    mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);    
+    if exist(fullfile(save_path, 'source analysis', 'dipoles.mat'),'file') && overwrite.dip==false
         disp(['Not overwriting dipole source reconstruction for ' params.sub]);
-    else
-        clear squimdag_timelocked squidgrad_timelocked opm_timelockedT
-        opm_timelockedT = load(fullfile(save_path, 'source analysis', [params.sub '_opm_timelockedT.mat'])).opm_timelockedT;
-        squidmag_timelocked = load(fullfile(save_path, [params.sub '_squidmag_timelocked_Std.mat'])).timelocked_data;
-        squidgrad_timelocked = load(fullfile(save_path, [params.sub '_squidgrad_timelocked_Std.mat'])).timelocked_data;
-        squideeg_timelocked = load(fullfile(save_path, [params.sub '_squideeg_timelocked_Std.mat'])).timelocked_data;
-        clear MMN_opm MMN_squidmag MMN_squidgrad
-        MMN_opm = load(fullfile(save_path, [params.sub '_opm_Evoked data_M300_MMN_max sensor.mat'])).timelocked; 
-        MMN_squidmag = load(fullfile(save_path, [params.sub '_squidmag_Evoked data_M300_MMN_max sensor.mat'])).timelocked; 
-        MMN_squidgrad = load(fullfile(save_path, [params.sub '_squidgrad_Evoked data_M300_MMN_max sensor.mat'])).timelocked; 
-        [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelockedT, headmodels, mri_resliced, MMN_squidmag, MMN_squidgrad, MMN_opm, params, stats);
+        else
+            clear headmodels mri_resliced
+            headmodels = load(fullfile(shared_folder_path, 'headmodels.mat')).headmodels;
+            mri_resliced = load(fullfile(shared_folder_path, 'mri_resliced_cm.mat')).mri_resliced_cm;
+            
+            clear squimdag_timelocked squidgrad_timelocked opm_timelockedT
+            opm_timelockedT = load(fullfile(save_path, 'source analysis', [params.sub '_opm_timelockedT.mat'])).opm_timelockedT;
+            opmeeg_timelockedT = load(fullfile(save_path, 'source analysis', [params.sub '_opmeeg_timelockedT.mat'])).opmeeg_timelockedT;
+            squidmag_timelocked = load(fullfile(save_path, [params.sub '_squidmag_timelocked_Std.mat'])).timelocked_data;
+            squidgrad_timelocked = load(fullfile(save_path, [params.sub '_squidgrad_timelocked_Std.mat'])).timelocked_data;
+            squideeg_timelocked = load(fullfile(save_path, [params.sub '_squideeg_timelocked_Std.mat'])).timelocked_data;
+
+            clear MMN_opm MMN_squidmag MMN_squidgrad
+            MMN_opm = load(fullfile(save_path, [params.sub '_opm_Evoked data_M300_MMN_max sensor.mat'])).timelocked; 
+            MMN_squidmag = load(fullfile(save_path, [params.sub '_squidmag_Evoked data_M300_MMN_max sensor.mat'])).timelocked; 
+            MMN_squidgrad = load(fullfile(save_path, [params.sub '_squidgrad_Evoked data_M300_MMN_max sensor.mat'])).timelocked; 
+            [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path, squidmag_timelocked, squidgrad_timelocked, squideeg_timelocked, opm_timelockedT, opmeeg_timelockedT, headmodels, mri_resliced, MMN_squidmag, MMN_squidgrad, MMN_opm, params, stats);
+    end
 end
-
-%% Dipole group analysis
+% Dipole group analysis
 subs = 2:13;
-dipole_results_goup(base_save_path,subs, params)
+dipole_results_group(base_save_path,subs, params)
 
-%% MNE
+%% Prepare Leadfields
 for i_sub = 2:size(subses,1)
     ft_hastoolbox('mne',1);
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
-
-    %% MNE fit
-    if exist(fullfile(save_path, 'mne_fits.mat'),'file') && overwrite.mne==false
-        disp(['Not overwriting MNE source reconstruction for ' params.sub]);
+    if exist(fullfile(save_path, 'source analysis', 'opm_leadfield.mat'),'file') && overwrite.dip==false
+        disp(['Not overwriting dipole source reconstruction for ' params.sub]);
+   % Load files
     else
         clear headmodels sourcemodel sourcemodel_inflated
         sourcemodel = load(fullfile(shared_folder_path, [params.sub '_sourcemodel.mat'])).sourcemodel;
@@ -605,10 +622,31 @@ for i_sub = 2:size(subses,1)
         opm_timelockedT = load(fullfile(save_path, 'source analysis', [params.sub '_opm_timelockedT.mat'])).opm_timelockedT;
         squidmag_timelocked = load(fullfile(save_path, [params.sub '_squidmag_timelocked_Std.mat'])).timelocked_data;
         squidgrad_timelocked = load(fullfile(save_path, [params.sub '_squidgrad_timelocked_Std.mat'])).timelocked_data;
+        
+        % Prepare
+        prep_leadfield(headmodels,sourcemodel, squidmag_timelocked, [params.sub '_squidmag'], save_path)
+        prep_leadfield(headmodels,sourcemodel, squidgrad_timelocked, [params.sub '_squidgrad'], save_path)
+        prep_leadfield(headmodels,sourcemodel, opm_timelockedT, [params.sub '_opm'], save_path)
+    end
 
+
+%% MNE fit
+    if exist(fullfile(save_path, 'mne_fits.mat'),'file') && overwrite.mne==false
+        disp(['Not overwriting MNE source reconstruction for ' params.sub]);
+    else
+        %LOAD LEADFIELDS
         params.use_cov_all = false;
+        
+        leadfield = load(fullfile(save_path, 'source analysis', [params.sub '_squidmag_leadfield.mat'])).leadfield;
+        fit_mne(save_path, squidmag_timelocked, headmodels, sourcemodel, sourcemodel_inflated, leadfield, params);
+        
+        leadfield = load(fullfile(save_path, 'source analysis', [params.sub '_squidgrad_leadfield.mat'])).leadfield;
+        fit_mne(save_path, squidgrad_timelocked, headmodels, sourcemodel, sourcemodel_inflated, leadfield, params);
+               
+        leadfield = load(fullfile(save_path, 'source analysis', [params.sub '_opm_leadfield.mat'])).leadfield;
+        fit_mne(save_path, opm_timelockedT, headmodels, sourcemodel, sourcemodel_inflated, leadfield, params);
 
-        fit_mne(save_path, squidmag_timelocked, squidgrad_timelocked, opm_timelockedT, headmodels, sourcemodel, sourcemodel_inflated, params);
+        clear leadfield
     end
 end
 close all
