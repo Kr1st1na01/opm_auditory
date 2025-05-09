@@ -21,7 +21,12 @@ cfg.pad = 2;
 FFT_timelocked = ft_freqanalysis(cfg, timelock);
 
 % Plot butterfly on the timelocked data
-plot_butterfly(FFT_timelocked, params, save_path)
+h = figure;
+plot(FFT_timelocked.freq, FFT_timelocked.powspctrm);
+xlabel('frequencies [Hz]')
+ylabel(params.pow_label)
+title(['Frequency analysis ' params.modality ' - ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq analysis_butterfly audodd_' params.condition '.jpg']))
 
 % Plot FFT
 cfg = [];
@@ -39,7 +44,7 @@ saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag
 h = figure;
 [pow, pks] = max(FFT_timelocked.powspctrm(:,ismember(params.specificfreq, FFT_timelocked.freq)));
 peak.values = [peak.values; pow];
-peak.labels(end+1,1) = {[params.modality '_Freq tag_FFT_' params.condition '_freq ' int2str(params.specificfreq) '_power' params.pow_label]};
+peak.labels(end+1,1) = {[params.modality '_Freq tag_FFT_' params.condition '_freq ' int2str(params.specificfreq) params.pow_label]};
 cfg.channel = pks;
 ft_singleplotER(cfg, FFT_timelocked)
 xlabel('frequency [Hz]')
@@ -73,9 +78,6 @@ cfg.tapsmofrq   = zeros(length(cfg.foi), 1)+4;   % Smoothing. dF = 1/dT (dT = 0.
 cfg.pad = 2;
 
 TFRhann_multi = ft_freqanalysis(cfg, epochs); % The power spectrum is calculated
-
-% Plot butterfly on the timelocked data
-plot_butterfly(TFR_timelocked, params, save_path)
 
 % Plot TFR
 cfg = [];

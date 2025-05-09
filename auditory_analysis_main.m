@@ -195,7 +195,7 @@ end
 
 %% Loop over subjects 
 
-for i_sub = 1:size(subses,1)
+for i_sub = 1%1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     
     %% Paths
@@ -237,7 +237,7 @@ for i_sub = 1:size(subses,1)
         Freqtag_opmeeg = load(fullfile(save_path, [params.sub '_opmeeg_long_ica.mat'])).long_data;
     
         Evoked_squid = load(fullfile(save_path, [params.sub '_squid_cropped_ica.mat'])).cropped_data;
-        Freqtag_squid = load(fullfile(save_path, [params.sub '_squid_long_ica.mat'])).long.data;
+        Freqtag_squid = load(fullfile(save_path, [params.sub '_squid_long_ica.mat'])).long_data;
 
         Evoked_squideeg = load(fullfile(save_path, [params.sub '_squideeg_cropped_ica.mat'])).cropped_data;
         Freqtag_squideeg = load(fullfile(save_path, [params.sub '_squideeg_long_ica.mat'])).long_data;
@@ -248,6 +248,7 @@ for i_sub = 1:size(subses,1)
         peak = [];
         peak.values = [];
         peak.labels = {};
+        ylimit = {};
         
         params.modality = 'opm';
         params.layout = 'fieldlinebeta2bz_helmet.mat';
@@ -255,7 +256,7 @@ for i_sub = 1:size(subses,1)
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
         params.pow_label = 'Power [T^2]';
-        [opm_timelocked, peak] = evoked_analysis(Evoked_opm, params, save_path, peak); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
+        [opm_timelocked, peak, ylimit] = evoked_analysis(Evoked_opm, params, save_path, peak, ylimit); % Timelockar vanlig MMN och plottar för Std, Low och High och kör freqanalysis på TFR
         peak = freqtag_analysis(Freqtag_opm, params, save_path, peak);
         close all
         
@@ -267,7 +268,7 @@ for i_sub = 1:size(subses,1)
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
         params.pow_label = 'Power [V^2]';        
-        [opmeeg_timelocked, peak] = evoked_analysis(Evoked_opmeeg, params, save_path, peak); 
+        [opmeeg_timelocked, peak, ylimit] = evoked_analysis(Evoked_opmeeg, params, save_path, peak, ylimit); 
         peak = freqtag_analysis(Freqtag_opmeeg, params, save_path, peak);
         close all
 
@@ -278,7 +279,7 @@ for i_sub = 1:size(subses,1)
         params.amp_scaler = 1e15;
         params.amp_label = 'B [fT]';
         params.pow_label = 'Power [T^2]';
-        [squidmag_timelocked, peak] = evoked_analysis(Evoked_squid, params, save_path, peak); 
+        [squidmag_timelocked, peak, ylimit] = evoked_analysis(Evoked_squid, params, save_path, peak, ylimit); 
         peak = freqtag_analysis(Freqtag_squid, params, save_path, peak);
         close all
 
@@ -288,7 +289,7 @@ for i_sub = 1:size(subses,1)
         params.amp_scaler = 1e15/100;
         params.amp_label = 'B [fT/cm]';
         params.pow_label = 'Power [T^2/cm^2]';
-        [squidgrad_timelocked, peak] = evoked_analysis(Evoked_squid, params, save_path, peak); 
+        [squidgrad_timelocked, peak, ylimit] = evoked_analysis(Evoked_squid, params, save_path, peak, ylimit); 
         peak = freqtag_analysis(Freqtag_squid, params, save_path, peak);
         close all
 
@@ -300,7 +301,7 @@ for i_sub = 1:size(subses,1)
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
         params.pow_label = 'Power [V^2]';
-        [squideeg_timelocked, peak] = evoked_analysis(Evoked_squideeg, params, save_path, peak); 
+        [squideeg_timelocked, peak, ylimit] = evoked_analysis(Evoked_squideeg, params, save_path, peak, ylimit); 
         peak = freqtag_analysis(Freqtag_squideeg, params, save_path, peak);
         
         save(fullfile(save_path, [params.sub '_peaks']), 'peak' ,"-v7.3");
@@ -440,9 +441,9 @@ end
 % statistics_pow.Properties.RowNames = replace(stats.lab(i_pow),'_', ', ');
 % statistichrcs_lat.Properties.RowNames = replace(stats.lab(i_lat),'_', ', ');
 
-writetable(statistics_amp, fullfile(base_save_path, 'statistics', [comparisons{i} '_table_amplitudes.csv']))
-writetable(statistics_pow, fullfile(base_save_path, 'statistics', [comparisons{i} '_table_power.csv']))
-writetable(statistics_lat, fullfile(base_save_path, 'statistics', [comparisons{i} '_table_latency.csv']))
+writetable(statistics_amp, fullfile(base_save_path, 'statistics', 'table_amplitudes.csv'))
+writetable(statistics_pow, fullfile(base_save_path, 'statistics', '_table_power.csv'))
+writetable(statistics_lat, fullfile(base_save_path, 'statistics', '_table_latency.csv'))
 
 close all
 clear k save ratio log_ratio list i_amp i_pow h l names p stats diff comparisons i ap
