@@ -195,7 +195,7 @@ end
 
 %% Loop over subjects 
 
-for i_sub = 1%1:size(subses,1)
+for i_sub = 1:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     
     %% Paths
@@ -346,7 +346,7 @@ stats.lab = replace(erase(stats.labels(startsWith(stats.labels, 'opm_')), 'opm_'
 
 % Saving indexes and tables
 i_amp = find(contains(stats.lab, 'amplitude'));
-i_pow = find(contains(stats.lab, 'power'));
+i_pow = find(contains(stats.lab, 'FFT'));
 i_lat = find(contains(stats.lab, 'latency'));
 % statistics_amp = table;
 % statistics_pow = table;
@@ -442,8 +442,8 @@ end
 % statistichrcs_lat.Properties.RowNames = replace(stats.lab(i_lat),'_', ', ');
 
 writetable(statistics_amp, fullfile(base_save_path, 'statistics', 'table_amplitudes.csv'))
-writetable(statistics_pow, fullfile(base_save_path, 'statistics', '_table_power.csv'))
-writetable(statistics_lat, fullfile(base_save_path, 'statistics', '_table_latency.csv'))
+writetable(statistics_pow, fullfile(base_save_path, 'statistics', 'table_power.csv'))
+writetable(statistics_lat, fullfile(base_save_path, 'statistics', 'table_latency.csv'))
 
 close all
 clear k save ratio log_ratio list i_amp i_pow h l names p stats diff comparisons i ap
@@ -595,8 +595,9 @@ for i_sub = 2 %2:size(subses,1) % Skip first subject
             clear MMN_opm MMN_squidmag MMN_squidgrad
             MMN_opm = load(fullfile(save_path, [params.sub '_opm_Evoked data_M300_MMN_max sensor.mat'])).timelocked; 
             MMN_squidmag = load(fullfile(save_path, [params.sub '_squidmag_Evoked data_M300_MMN_max sensor.mat'])).timelocked; 
-            MMN_squidgrad = load(fullfile(save_path, [params.sub '_squidgrad_Evoked data_M300_MMN_max sensor.mat'])).timelocked; 
-            [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path, squidmag_timelocked, squidgrad_timelocked, squideeg_timelocked, opm_timelockedT, opmeeg_timelockedT, headmodels, mri_resliced, MMN_squidmag, MMN_squidgrad, MMN_opm, params, stats);
+            MMN_squidgrad = load(fullfile(save_path, [params.sub '_squidgrad_Evoked data_M300_MMN_max sensor.mat'])).timelocked;
+            row_idx = find(contains(peak.lab, 'MMN')); % Row index for latency
+            [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path, squidmag_timelocked, squidgrad_timelocked, squideeg_timelocked, opm_timelockedT, opmeeg_timelockedT, headmodels, mri_resliced, MMN_squidmag, MMN_squidgrad, MMN_opm, params, stats, row_idx);
     end
 end
 % Dipole group analysis

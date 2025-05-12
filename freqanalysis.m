@@ -44,7 +44,7 @@ saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag
 h = figure;
 [pow, pks] = max(FFT_timelocked.powspctrm(:,ismember(params.specificfreq, FFT_timelocked.freq)));
 peak.values = [peak.values; pow];
-peak.labels(end+1,1) = {[params.modality '_Freq tag_FFT_' params.condition '_freq ' int2str(params.specificfreq) params.pow_label]};
+peak.labels(end+1,1) = {[params.modality '_Freq tag_FFT_' params.condition '_freq ' int2str(params.specificfreq) '_' params.pow_label]};
 cfg.channel = pks;
 ft_singleplotER(cfg, FFT_timelocked)
 xlabel('frequency [Hz]')
@@ -95,7 +95,8 @@ saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag
 
 % Channel with highest peak
 h = figure;
-val = nanmean(TFRhann_multi.powspctrm(pks, 10, :));
+freq_idx = find(TFRhann_multi.freq == params.specificfreq);
+val = nanmean(TFRhann_multi.powspctrm(pks, freq_idx, :));
 cfg.channel = pks;
 ft_singleplotTFR(cfg, TFRhann_multi)
 xlabel('time [s]')

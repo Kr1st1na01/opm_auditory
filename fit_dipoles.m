@@ -27,12 +27,12 @@ sourcemodel    = ft_prepare_sourcemodel(cfg);
     cfg.senstype        = 'meg';            
     cfg.channel         = 'megmag';         
     cfg.nonlinear       = 'yes';           
-    cfg.latency         = peak.val_squidmag(7,n_sub) + [-0.01 0.01];
+    cfg.latency         = peak.val_squidmag(row_idx,n_sub) + [-0.01 0.01];
     cfg.dipfit.checkinside = 'yes';
     %cfg.dipfit.noisecov = meg_timelocked{i_phalange}.cov;
     squidmag_dipole = ft_dipolefitting(cfg, squidmag_timelocked);
     
-    cfg.latency         = peak.val_squidgrad(7,n_sub) + [-0.01 0.01];   
+    cfg.latency         = peak.val_squidgrad(row_idx,n_sub) + [-0.01 0.01];   
     cfg.channel         = 'megplanar';           
     squidgrad_dipole = ft_dipolefitting(cfg, squidgrad_timelocked);
 
@@ -40,7 +40,7 @@ sourcemodel    = ft_prepare_sourcemodel(cfg);
         cfg.headmodel       = headmodels.headmodel_eeg;    
         cfg.senstype        = 'eeg';            
         cfg.channel         = 'eeg';   
-        cfg.latency         = peak.val_squideeg(7,n_sub) + [-0.01 0.01];   
+        cfg.latency         = peak.val_squideeg(row_idx,n_sub) + [-0.01 0.01];   
         squideeg_dipole = ft_dipolefitting(cfg, squideeg_timelocked);
     else 
         squideeg_dipole = [];
@@ -56,7 +56,7 @@ sourcemodel    = ft_prepare_sourcemodel(cfg);
     cfg.senstype        = 'meg';            
     cfg.channel         = '*bz';        
     cfg.nonlinear       = 'yes';            
-    cfg.latency         = peak.val_opm(7,n_sub) + [-0.01 0.01];   
+    cfg.latency         = peak.val_opm(row_idx,n_sub) + [-0.01 0.01];   
     cfg.dipfit.checkinside = 'yes';
     %cfg.dipfit.noisecov = opm_timelocked{i_phalange}.cov;
     opm_dipole = ft_dipolefitting(cfg, opm_timelocked);
@@ -65,7 +65,7 @@ sourcemodel    = ft_prepare_sourcemodel(cfg);
         cfg.headmodel       = headmodels.headmodel_eeg;  
         cfg.senstype        = 'eeg';           
         cfg.channel         = 'eeg';        
-        cfg.latency         = peak.val_opmeeg(7,n_sub) + [-0.01 0.01];   
+        cfg.latency         = peak.val_opmeeg(row_idx,n_sub) + [-0.01 0.01];   
         opmeeg_dipole = ft_dipolefitting(cfg, opmeeg_timelocked);
     else 
         opmeeg_dipole = [];
@@ -227,9 +227,9 @@ close all
 params.modality = 'squidgrad';
 pos_grad = [];
 ori_grad = [];
-pos_grad(1,:) = squidgrad_dipole.dip.pos;
+pos_grad = squidgrad_dipole.dip.pos;
 [~,idx] = max(vecnorm(squidgrad_dipole.dip.mom,2,1));
-ori_grad(1,:) = squidgrad_dipole.dip.mom(:,idx);
+ori_grad = squidgrad_dipole.dip.mom(:,idx);
 mean_pos = mean(pos_grad,1);
 tmp = pos_grad;
 tmp(:,1) = mean_pos(1)-1;
