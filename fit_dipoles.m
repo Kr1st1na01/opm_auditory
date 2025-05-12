@@ -271,4 +271,4 @@ title('SQUID-MAG')
 saveas(h, fullfile(save_path, 'source analysis', [params.sub '_' params.modality '_dipfit-001.jpg']))
 close all
 %% Save 
-save(fullfile(save_path, 'dipoles'), 'squidmag_dipole', 'squidgrad_dipole', 'opm_dipole', 'squideeg_dipole', 'opmeeg_dipole'); disp('done');
+save(fullfile(save_path, 'source analysis', 'dipoles'), 'squidmag_dipole', 'squidgrad_dipole', 'opm_dipole', 'squideeg_dipole', 'opmeeg_dipole'); disp('done');

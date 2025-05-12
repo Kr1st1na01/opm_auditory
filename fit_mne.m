@@ -1,4 +1,4 @@
-function fit_mne(save_path, timelocked_data, sourcemodel, sourcemodel_inflated, leadfield, params)
+function fit_mne(save_path, timelocked_data, headmodel, sourcemodel, sourcemodel_inflated, leadfield, params)
 
 
 %% MNE invserse
@@ -11,8 +11,8 @@ MNE = [];
     end
 
     cfg = [];
-    cfg.method              = 'mne';
-    %cfg.mne.prewhiten       = 'yes';
+    cfg.method              = params.method;
+    cfg.mne.prewhiten       = 'yes';
     cfg.mne.lambda          = 3;
     cfg.mne.scalesourcecov  = 'yes';
     cfg.headmodel           = headmodel;    % supply the headmodel
@@ -22,8 +22,7 @@ MNE = [];
     tmp = ft_sourceanalysis(cfg, timelocked_data);
     tmp.tri = sourcemodel.tri;
     
-    params.modality = 'squidgrad'; %ÄNDRA HÄR
-    MNE = FullAreaHalfMax(tmp,sourcemodel,params, save_path);
+    MNE = FullAreaHalfMax(tmp, sourcemodel, params, save_path);
 
     cfg = [];
     cfg.method          = 'surface';
