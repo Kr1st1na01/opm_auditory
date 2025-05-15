@@ -104,7 +104,7 @@ sourcemodel    = ft_prepare_sourcemodel(cfg);
         ft_plot_headmodel(headmodels.headmodel_meg,'EdgeAlpha',0,'FaceAlpha',0.3,'FaceColor',[229 194 152]/256,'unit','cm') 
         hold off
         title([params.trigger_labels ' (SQEEG-OPMEEG = ' num2str(norm((pos_eeg-pos_opmeeg))*10,'%.1f') 'mm)'])
-        legend('SQUIDEEG','OPMEEG','brain')
+        %legend('SQUIDEEG','OPMEEG','brain')
         saveas(h, fullfile(save_path, 'source analysis', [params.sub '_dipfit_SQUIDEEGvOPMEEG.jpg']))
         close
     end
@@ -120,7 +120,7 @@ sourcemodel    = ft_prepare_sourcemodel(cfg);
     ft_plot_headmodel(headmodels.headmodel_meg,'EdgeAlpha',0,'FaceAlpha',0.3,'FaceColor',[229 194 152]/256,'unit','cm') 
     hold off
     title([' (SQMAG-OPM = ' num2str(norm(pos_mag-pos_opm)*10,'%.1f') 'mm / SQGRAD-OPM = ' num2str(norm(pos_gad-pos_opm)*10,'%.1f') 'mm)'])
-    legend('SQUIDMAG','OPM','SQUIDPLANAR','brain')
+    %legend('SQUIDMAG','OPM','SQUIDPLANAR','brain')
     saveas(h, fullfile(save_path, 'source analysis', [params.sub '_dipfit_SQUIDvOPM.jpg']))
 
 

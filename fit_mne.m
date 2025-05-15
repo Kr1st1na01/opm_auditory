@@ -1,4 +1,4 @@
-function fit_mne(save_path, timelocked_data, headmodel, sourcemodel, sourcemodel_inflated, leadfield, params)
+function fit_mne(save_path, timelocked_data, headmodel, sourcemodel, sourcemodel_inflated, leadfield, params, peak)
 
 
 %% MNE invserse
@@ -11,7 +11,7 @@ MNE = [];
     end
 
     cfg = [];
-    cfg.method              = params.method;
+    cfg.method              = 'mne';
     cfg.mne.prewhiten       = 'yes';
     cfg.mne.lambda          = 3;
     cfg.mne.scalesourcecov  = 'yes';
@@ -29,15 +29,15 @@ MNE = [];
     cfg.funparameter    = 'pow';
     cfg.funcolormap     = 'jet';    
     cfg.colorbar        = 'no';
-    cfg.latency         = squidgrad_mne_MMN.peak_latency; %%%%%%%
+    cfg.latency         = peak; 
     tmp.pos = sourcemodel_inflated.pos;
     tmp.tri = sourcemodel_inflated.tri;
     h = figure;
     ft_sourceplot(cfg, tmp)
     lighting gouraud
     material dull
-    title(['SQUID-GRAD (FAHM=' num2str(MNE.fahm,3) 'cm^2; t=' num2str(round(squidgrad_mne_MMN.peak_latency*1e3)) 'ms)']) %%%%%%%%%%%
-    saveas(h, fullfile(save_path,'source analysis', [params.sub '_squidgrad_mne_' params.trigger_labels '.jpg']))
+    title([params.modality ' (FAHM=' num2str(MNE.fahm,3) 'cm^2; t=' num2str(round(peak*1e3)) 'ms)']) 
+    saveas(h, fullfile(save_path,'source analysis', [params.sub '_' params.modality '_mne_.jpg']))
     close all
 
     clear tmp
@@ -65,7 +65,7 @@ MNE = [];
 %     squidgrad_mne_M60{i_phalange}.overlap_squidmag = squidmag_mne_M60{i_phalange}.overlap_squidgrad;
 
 
-save(fullfile(save_path, 'squidmag_mne_M60'), 'squidmag_mne_M60'); 
+%save(fullfile(save_path, 'squidmag_mne_M60'), 'squidmag_mne_M60'); 
 
 
 end

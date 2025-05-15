@@ -25,7 +25,7 @@ h = figure;
 plot(FFT_timelocked.freq, FFT_timelocked.powspctrm);
 xlabel('frequencies [Hz]')
 ylabel(params.pow_label)
-title(['Frequency analysis ' params.modality ' - ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
+title(['Frequency analysis ' params.modality ' - ' params.condition ' (n_{chs}=' num2str(length(FFT_timelocked.cfg.channel)) ')'], Interpreter="none")
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq analysis_butterfly audodd_' params.condition '.jpg']))
 
 % Plot FFT
@@ -36,7 +36,7 @@ cfg.showlabels      = 'yes';
 
 h = figure;
 ft_multiplotER(cfg, FFT_timelocked);
-title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
+title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{chs}=' num2str(length(FFT_timelocked.cfg.channel)) ')'], Interpreter="none")
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_' params.condition '.jpg']))
 
@@ -49,7 +49,7 @@ cfg.channel = pks;
 ft_singleplotER(cfg, FFT_timelocked)
 xlabel('frequency [Hz]')
 ylabel(params.pow_label)
-title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
+title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{chs}=' num2str(length(FFT_timelocked.cfg.channel)) ')'], Interpreter="none")
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_max sensor ' params.condition '.jpg']))
 
 % Topoplot
@@ -60,7 +60,7 @@ cfg.baseline        = [-params.pre 0];
 cfg.layout = params.layout;
 cfg.xlim = [params.pretimwin params.posttimwin];
 ft_topoplotTFR(cfg, FFT_timelocked)
-title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{trls}=' num2str(length(FFT_timelocked.cfg.trials)) ')'], Interpreter="none")
+title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{chs}=' num2str(length(FFT_timelocked.cfg.channel)) ')'], Interpreter="none")
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_Topoplot_' params.condition '.jpg']))
 
@@ -89,7 +89,7 @@ cfg.baseline        = [-params.pre 0];
 
 h = figure;
 ft_multiplotTFR(cfg, TFRhann_multi);
-title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
+title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{chs}=' num2str(length(TFRhann_multi.cfg.channel)) ')'], Interpreter="none")
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_' params.condition '.jpg']))
 
@@ -101,7 +101,7 @@ cfg.channel = pks;
 ft_singleplotTFR(cfg, TFRhann_multi)
 xlabel('time [s]')
 ylabel('frequency [Hz]')
-title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
+title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{chs}=' num2str(length(TFRhann_multi.cfg.channel)) ')'], Interpreter="none")
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_max sensor ' params.condition '.jpg']))
 
@@ -114,7 +114,7 @@ cfg.layout = params.layout;
 cfg.xlim = [params.freqwin(1) params.freqwin(end)];
 cfg.ylim = [params.freqylim];
 ft_topoplotTFR(cfg, TFRhann_multi)
-title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
+title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{chs}=' num2str(length(TFRhann_multi.cfg.channel)) ')'], Interpreter="none")
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_' params.condition '_0.jpg']))
 
@@ -131,7 +131,7 @@ while li < params.freqwin(end)
     cfg.xlim = [li li+params.freqsteps];
     cfg.ylim = [params.freqylim];
     ft_topoplotTFR(cfg, TFRhann_multi)
-    title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{trls}=' num2str(length(TFRhann_multi.cfg.trials)) ')'], Interpreter="none")
+    title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{chs}=' num2str(length(TFRhann_multi.cfg.channel)) ')'], Interpreter="none")
     colorbar
     saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_' params.condition '_' int2str(fignum) '.jpg']))
     li = li+params.freqsteps;

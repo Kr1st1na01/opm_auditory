@@ -14,20 +14,32 @@ params.posttimwin = 0.12;
 params.trials = find(data.trialinfo==params.trigger_code(1));
 params.condition = 'Std';
 timelocked = timelock(data, params, save_path);
-plot_butterfly(timelocked, params, save_path, ylimit)
+ylimit = plot_butterfly(timelocked, params, save_path, ylimit);
 
 % Sensor with highest peak
 params.condition = 'M100_Std';
 [tmp, peak] = find_peak(timelocked, params, peak); % Saves values
 timelocked.avg = timelocked.avg(tmp.i_peakch,:);
-ylimit = plot_butterfly(timelocked, params, save_path, ylimit);
+plot_butterfly(timelocked, params, save_path, ylimit);
+
+params.pretimwin = 0.27;
+params.posttimwin = 0.33;
+
+% Sensor with highest peak
+params.condition = 'M300_Std';
+[tmp, peak] = find_peak(timelocked, params, peak); % Saves values
+timelocked.avg = timelocked.avg(tmp.i_peakch,:);
+plot_butterfly(timelocked, params, save_path, ylimit);
 
 %% Low tone
+params.pretimwin = 0.08;
+params.posttimwin = 0.12;
+
 % Plot both low triggers
 params.trials = find(ismember(data.trialinfo, params.trigger_code(2:3)));
 params.condition = 'Low';
 timelocked = timelock(data, params, save_path);
-plot_butterfly(timelocked, params, save_path, ylimit)
+ylimit = plot_butterfly(timelocked, params, save_path, ylimit);
 
 % Sensor with highest peak
 params.condition = 'M100_Low';
@@ -40,7 +52,7 @@ plot_butterfly(timelocked, params, save_path, ylimit)
 params.trials = find(ismember(data.trialinfo, params.trigger_code(4:5)));
 params.condition = 'High';
 timelocked = timelock(data, params, save_path);
-plot_butterfly(timelocked, params, save_path, ylimit)
+ylimit = plot_butterfly(timelocked, params, save_path, ylimit);
 
 % Sensor with highest peak
 params.condition = 'M100_High';
@@ -60,7 +72,7 @@ G = [G; GH];
 params.trials = G;
 params.condition = 'Go';
 timelocked_G = timelock(data, params, save_path);
-plot_butterfly(timelocked_G, params, save_path, ylimit)
+ylimit = plot_butterfly(timelocked_G, params, save_path, ylimit);
 
 timelocked_G100 = timelocked_G;
 timelocked_G300 = timelocked_G;
@@ -72,7 +84,7 @@ params.condition = 'M100_Go';
 [tmp, peak] = find_peak(timelocked_G, params, peak);
 
 timelocked_G100.avg = timelocked_G.avg(tmp.i_peakch,:);
-ylimit = plot_butterfly(timelocked_G100, params, save_path, ylimit);
+plot_butterfly(timelocked_G100, params, save_path, ylimit);
 
 % Max channel M300
 params.pretimwin = 0.27;
@@ -81,7 +93,7 @@ params.condition = 'M300_Go';
 [tmp, peak] = find_peak(timelocked_G, params, peak);
 
 timelocked_G300.avg = timelocked_G.avg(tmp.i_peakch,:);
-ylimit = plot_butterfly(timelocked_G300, params, save_path, ylimit);
+plot_butterfly(timelocked_G300, params, save_path, ylimit);
 
 %% Saving trigger indeces
 pre_NG = [];
@@ -96,13 +108,13 @@ end
 params.trials = pre_NG;
 params.condition = 'pre No Go';
 timelocked_pre = timelock(data, params, save_path);
-plot_butterfly(timelocked_pre, params, save_path, ylimit)
+plot_butterfly(timelocked_pre, params, save_path, ylimit);
 
 % No Go
 params.trials = NG;
 params.condition = 'No Go';
 timelocked_NG = timelock(data, params, save_path);
-plot_butterfly(timelocked_NG, params, save_path, ylimit)
+ylimit = plot_butterfly(timelocked_NG, params, save_path, ylimit);
 
 %% MMN
 params.trials = NG;
@@ -127,7 +139,7 @@ timelocked_NG300 = timelocked_NG;
 params.condition = 'M100_No Go';
 [tmp, peak] = find_peak(timelocked_NG100, params, peak);
 timelocked_NG100.avg = timelocked_NG100.avg(tmp.i_peakch,:);
-ylimit = plot_butterfly(timelocked_NG100, params, save_path, ylimit);
+plot_butterfly(timelocked_NG100, params, save_path, ylimit);
 
 % No Go M300
 params.pretimwin = 0.27;
@@ -135,7 +147,7 @@ params.posttimwin = 0.33;
 params.condition = 'M300_No Go';
 [tmp, peak] = find_peak(timelocked_NG300, params, peak);
 timelocked_NG300.avg = timelocked_NG300.avg(tmp.i_peakch,:);
-ylimit = plot_butterfly(timelocked_NG300, params, save_path, ylimit);
+plot_butterfly(timelocked_NG300, params, save_path, ylimit);
 
 %% MMN and peak
 params.pretimwin = 0.1; % for find_peak.m
@@ -144,7 +156,7 @@ params.condition = 'MMN peak';
 
 [tmp, peak] = find_peak(timelockedMMN, params, peak);
 
-% Plot MMN with peak
+% Plot MMN with xline at peak
 h = figure;
 plot(timelockedMMN.time*1e3,timelockedMMN.avg*params.amp_scaler);
 hold on
@@ -159,7 +171,7 @@ saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Evoked d
 params.condition = 'MMN peak ch';
 timelockedMMN.avg = timelockedMMN.avg(tmp.i_peakch, :); % Choose peak ch, y-axis
 %plot_butterfly(timelockedMMN, params, save_path, ylimit)
-%save(fullfile(save_path, [params.sub '_' params.modality '_Evoked data_' params.condition]), 'timelocked', '-v7.3'); 
+%save(fullfile(save_path, [params.sub '_' params.modality '_Evoked data_' params.condition]), 'timelockedMMN', '-v7.3'); 
 
 h = figure;
 plot(timelockedMMN.time*1e3,timelockedMMN.avg*params.amp_scaler);

@@ -195,7 +195,7 @@ end
 
 %% Loop over subjects 
 
-for i_sub = 1:size(subses,1)
+for i_sub = 2%:size(subses,1)
     params.sub = ['sub_' num2str(i_sub,'%02d')];
     
     %% Paths
@@ -268,8 +268,8 @@ for i_sub = 1:size(subses,1)
         params.amp_scaler = 1e9;
         params.amp_label = 'V [nV]';
         params.pow_label = 'Power [V^2]';        
-        [opmeeg_timelocked, peak, ylimit] = evoked_analysis(Evoked_opmeeg, params, save_path, peak, ylimit); 
-        peak = freqtag_analysis(Freqtag_opmeeg, params, save_path, peak);
+        %[opmeeg_timelocked, peak, ylimit] = evoked_analysis(Evoked_opmeeg, params, save_path, peak, ylimit); 
+        %peak = freqtag_analysis(Freqtag_opmeeg, params, save_path, peak);
         close all
 
         %% Average SQUID-MEG
@@ -402,12 +402,13 @@ for i = 1:size(list,1)
         [~, p] = ttest(abs(list{i,1}(i_amp(k),:)), abs(list{i,2}(i_amp(k),:))); % Calculating h and p-value
         save{k,1} = p;
         save{k,2} = mean(ratio(i_amp(k),:));
-        save{k,3} = mean(log_ratio(i_amp(k),:));
-        [h, p] = ttest(log_ratio(i_amp(k),:)); % Calculating h and p-value for ratio
+        save{k,3} = mean(log_ratio(i_amp(k),:))*20;
+        [h, p, ~, stats] = ttest(log_ratio(i_amp(k),:)); % Calculating h and p-value for ratio
         save{k,4} = [h,p];
+        save{k,5} = stats.sd;
     end
     statistics_pre = cell2table(save); % Putting the values in the table
-    statistics_pre.Properties.VariableNames = {comparisons{i}, ['mean ratio ' int2str(i)], ['mean log ratio ' int2str(i) ' (dB)'], ['ttest on log ratio ' int2str(i)]};
+    statistics_pre.Properties.VariableNames = {comparisons{i}, ['mean ratio ' int2str(i)], ['mean log ratio ' int2str(i) ' (dB)'], ['ttest on log ratio ' int2str(i)], ['standard deviation' int2str(i)]};
     statistics_amp = [statistics_amp statistics_pre]; % Adding the table to the big table
 
     save = {};
@@ -416,11 +417,12 @@ for i = 1:size(list,1)
         save{k,1} = p;
         save{k,2} = mean(ratio(i_pow(k),:));
         save{k,3} = mean(log_ratio(i_pow(k),:))*10;
-        [h, p] = ttest(log_ratio(i_pow(k),:)); % Calculating h and p-value for ratio
+        [h, p, ~, stats] = ttest(log_ratio(i_pow(k),:)); % Calculating h and p-value for ratio
         save{k,4} = [h,p];
+        save{k,5} = stats.sd;
     end
     statistics_pre = cell2table(save); % Putting the values in the table
-    statistics_pre.Properties.VariableNames = {comparisons{i}, ['mean ratio ' int2str(i)], ['mean log ratio ' int2str(i) ' (dB)'], ['ttest on log ratio' int2str(i)]};
+    statistics_pre.Properties.VariableNames = {comparisons{i}, ['mean ratio ' int2str(i)], ['mean log ratio ' int2str(i) ' (dB)'], ['ttest on log ratio' int2str(i)], ['standard deviation' int2str(i)]};
     statistics_pow = [statistics_pow statistics_pre]; % Adding the table to the big table
     save = {};
 
@@ -430,9 +432,10 @@ for i = 1:size(list,1)
         save{k,2} = mean(diff(i_lat(k),:));
         [h, p] = ttest(diff(i_lat(k),:)); % Calculating h and p-value for ratio
         save{k,3} = [h,p];
+        save{k,4} = stats.sd;
     end
     statistics_pre = cell2table(save); % Putting the values in the table
-    statistics_pre.Properties.VariableNames = {comparisons{i}, ['mean difference ' int2str(i)], ['ttest on difference ' int2str(i)]};
+    statistics_pre.Properties.VariableNames = {comparisons{i}, ['mean difference ' int2str(i)], ['ttest on difference ' int2str(i)], ['standard deviation' int2str(i)]};
     statistics_lat = [statistics_lat statistics_pre]; % Adding the table to the big table
 end  
 
@@ -444,6 +447,18 @@ end
 writetable(statistics_amp, fullfile(base_save_path, 'statistics', 'table_amplitudes.csv'))
 writetable(statistics_pow, fullfile(base_save_path, 'statistics', 'table_power.csv'))
 writetable(statistics_lat, fullfile(base_save_path, 'statistics', 'table_latency.csv'))
+% 
+% h = figure;
+% x1=table2array(statistics_amp(:,9));
+% x2=table2array(statistics_lat(:,7));
+% x3=table2array(statistics_pow(:,9));
+% matris = [x3];
+% boxplot(matris)
+% hold on
+% errorbar(table2array(statistics_amp(:,11)))
+% legend
+% hold off
+
 
 close all
 clear k save ratio log_ratio list i_amp i_pow h l names p stats diff comparisons i ap
@@ -592,12 +607,12 @@ for i_sub = 2 %2:size(subses,1) % Skip first subject
             squidgrad_timelocked = load(fullfile(save_path, [params.sub '_squidgrad_timelocked_Std.mat'])).timelocked_data;
             squideeg_timelocked = load(fullfile(save_path, [params.sub '_squideeg_timelocked_Std.mat'])).timelocked_data;
 
-            clear MMN_opm MMN_squidmag MMN_squidgrad
-            MMN_opm = load(fullfile(save_path, [params.sub '_opm_Evoked data_M300_MMN_max sensor.mat'])).timelocked; 
-            MMN_squidmag = load(fullfile(save_path, [params.sub '_squidmag_Evoked data_M300_MMN_max sensor.mat'])).timelocked; 
-            MMN_squidgrad = load(fullfile(save_path, [params.sub '_squidgrad_Evoked data_M300_MMN_max sensor.mat'])).timelocked;
-            row_idx = find(contains(peak.lab, 'MMN')); % Row index for latency
-            [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path, squidmag_timelocked, squidgrad_timelocked, squideeg_timelocked, opm_timelockedT, opmeeg_timelockedT, headmodels, mri_resliced, MMN_squidmag, MMN_squidgrad, MMN_opm, params, stats, row_idx);
+            clear M100_opm M100_squidmag M100_squidgrad
+            M100_opm = load(fullfile(save_path, [params.sub '_opm_Evoked data_M300_MMN_max sensor.mat'])).timelocked; 
+            M100_squidmag = load(fullfile(save_path, [params.sub '_squidmag_Evoked data_M100_Std_max sensor.mat'])).timelocked; 
+            M100_squidgrad = load(fullfile(save_path, [params.sub '_squidgrad_Evoked data_M100_Std_max sensor.mat'])).timelocked;
+            row_idx = find(contains(stats.lab, 'MMN')); % Row index for latency
+            [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path, squidmag_timelocked, squidgrad_timelocked, squideeg_timelocked, opm_timelockedT, opmeeg_timelockedT, headmodels, mri_resliced, M100_squidmag, MMN_squidgrad, MMN_opm, params, stats, row_idx);
     end
 end
 % Dipole group analysis
@@ -611,7 +626,7 @@ for i_sub = 2:size(subses,1)
     raw_path = fullfile(base_data_path,'MEG',['NatMEG_' subses{i_sub,1}], subses{i_sub,2});
     save_path = fullfile(base_save_path,params.sub);
     mri_path = fullfile(base_data_path,'MRI',['NatMEG_' subses{i_sub,1}]);
-    if exist(fullfile(save_path, 'source analysis', 'opm_leadfield.mat'),'file') && overwrite.dip==false
+    if exist(fullfile(save_path, 'source analysis', [params.sub '_opm_leadfield.mat']),'file') && overwrite.dip==false
         disp(['Not overwriting dipole source reconstruction for ' params.sub]);
    % Load files
     else
@@ -625,10 +640,10 @@ for i_sub = 2:size(subses,1)
         squidmag_timelocked = load(fullfile(save_path, [params.sub '_squidmag_timelocked_Std.mat'])).timelocked_data;
         squidgrad_timelocked = load(fullfile(save_path, [params.sub '_squidgrad_timelocked_Std.mat'])).timelocked_data;
         
-        % Prepare
-        prep_leadfield(headmodels,sourcemodel, squidmag_timelocked, [params.sub '_squidmag'], save_path)
-        prep_leadfield(headmodels,sourcemodel, squidgrad_timelocked, [params.sub '_squidgrad'], save_path)
-        prep_leadfield(headmodels,sourcemodel, opm_timelockedT, [params.sub '_opm'], save_path)
+%         % Prepare
+%         prep_leadfield(headmodels,sourcemodel, squidmag_timelocked, [params.sub '_squidmag'], save_path)
+%         prep_leadfield(headmodels,sourcemodel, squidgrad_timelocked, [params.sub '_squidgrad'], save_path)
+%         prep_leadfield(headmodels,sourcemodel, opm_timelockedT, [params.sub '_opm'], save_path)
     end
 
 
@@ -636,17 +651,36 @@ for i_sub = 2:size(subses,1)
     if exist(fullfile(save_path, 'mne_fits.mat'),'file') && overwrite.mne==false
         disp(['Not overwriting MNE source reconstruction for ' params.sub]);
     else
-        %LOAD LEADFIELDS
+        %LOAD LEADFIELDS AND SOURCEMODELS
+        clear headmodels sourcemodel sourcemodel_inflated
+        sourcemodel = load(fullfile(shared_folder_path, [params.sub '_sourcemodel.mat'])).sourcemodel;
+        sourcemodel_inflated = load(fullfile(shared_folder_path, [params.sub '_sourcemodel_inflated.mat'])).sourcemodel_inflated;
+        headmodels = load(fullfile(shared_folder_path, 'headmodels.mat')).headmodels;
+        
+        clear squimdag_timelocked squidgrad_timelocked opm_timelockedT
+        opm_timelockedT = load(fullfile(save_path, 'source analysis', [params.sub '_opm_timelockedT.mat'])).opm_timelockedT;
+        squidmag_timelocked = load(fullfile(save_path, [params.sub '_squidmag_timelocked_Std.mat'])).timelocked_data;
+        squidgrad_timelocked = load(fullfile(save_path, [params.sub '_squidgrad_timelocked_Std.mat'])).timelocked_data;
+
         params.use_cov_all = false;
         
         leadfield = load(fullfile(save_path, 'source analysis', [params.sub '_squidmag_leadfield.mat'])).leadfield;
-        fit_mne(save_path, squidmag_timelocked, headmodels, sourcemodel, sourcemodel_inflated, leadfield, params);
+        params.modality = 'squidmag';
+        row_idx = find(contains(stats.lab, 'M300, No Go')); % Row index for latency
+        val = stats.val_squidmag(row_idx,i_sub);
+        fit_mne(save_path, squidmag_timelocked, headmodels, sourcemodel, sourcemodel_inflated, leadfield, params, val);
         
         leadfield = load(fullfile(save_path, 'source analysis', [params.sub '_squidgrad_leadfield.mat'])).leadfield;
-        fit_mne(save_path, squidgrad_timelocked, headmodels, sourcemodel, sourcemodel_inflated, leadfield, params);
+        params.modality = 'squidgrad';
+        row_idx = find(contains(stats.lab, 'M300 No Go')); % Row index for latency
+        val = stats.val_squidgrad(row_idx,i_sub);
+        fit_mne(save_path, squidgrad_timelocked, headmodels, sourcemodel, sourcemodel_inflated, leadfield, params, val);
                
         leadfield = load(fullfile(save_path, 'source analysis', [params.sub '_opm_leadfield.mat'])).leadfield;
-        fit_mne(save_path, opm_timelockedT, headmodels, sourcemodel, sourcemodel_inflated, leadfield, params);
+        params.modality = 'opm';
+        row_idx = find(contains(stats.lab, 'M300 No Go')); % Row index for latency
+        val = stats.val_opm(row_idx,i_sub);
+        fit_mne(save_path, opm_timelockedT, headmodels, sourcemodel, sourcemodel_inflated, leadfield, params, val);
 
         clear leadfield
     end

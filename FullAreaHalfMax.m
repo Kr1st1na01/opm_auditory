@@ -41,6 +41,6 @@ xlabel('t [msec]')
 ylabel('total power')
 xlim([-params.pre params.post]*1e3);
 title(['Summed source power ' params.modality ' - audodd MMN'])
-saveas(h, fullfile(save_path, 'source analysis', [params.sub '_' params.modality '_mne_sourcepow_audodd-MMN.jpg'))
+saveas(h, fullfile(save_path, 'source analysis', [params.sub '_' params.modality '_mne_sourcepow_audodd-MMN.jpg']))
 
 end
