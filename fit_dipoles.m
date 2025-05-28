@@ -1,4 +1,4 @@
-function [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path,squidmag_timelocked,squidgrad_timelocked, squideeg_timelocked,opm_timelocked, opmeeg_timelocked,headmodels,mri,MMN_squidmag, MMN_squidgrad, MMN_opm, params, peak)
+function [squidmag_dipole, squidgrad_dipole, opm_dipole] = fit_dipoles(save_path,squidmag_timelocked,squidgrad_timelocked, squideeg_timelocked,opm_timelocked, opmeeg_timelocked,headmodels,mri, params, peak, row_idx)
 
 n_sub = str2num(erase(params.sub,'sub_'));
 
@@ -119,7 +119,7 @@ sourcemodel    = ft_prepare_sourcemodel(cfg);
     ft_plot_dipole(pos_gad(2,:),ori_grad,'color',colors(3,:))
     ft_plot_headmodel(headmodels.headmodel_meg,'EdgeAlpha',0,'FaceAlpha',0.3,'FaceColor',[229 194 152]/256,'unit','cm') 
     hold off
-    title([' (SQMAG-OPM = ' num2str(norm(pos_mag-pos_opm)*10,'%.1f') 'mm / SQGRAD-OPM = ' num2str(norm(pos_gad-pos_opm)*10,'%.1f') 'mm)'])
+    title([' (SQMAG-OPM = ' num2str(norm(abs(pos_mag)-abs(pos_opm))*10,'%.1f') 'mm / SQGRAD-OPM = ' num2str(norm(abs(pos_gad)-abs(pos_opm))*10,'%.1f') 'mm)'])
     %legend('SQUIDMAG','OPM','SQUIDPLANAR','brain')
     saveas(h, fullfile(save_path, 'source analysis', [params.sub '_dipfit_SQUIDvOPM.jpg']))
 

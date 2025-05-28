@@ -24,6 +24,14 @@ MNE = [];
     
     MNE = FullAreaHalfMax(tmp, sourcemodel, params, save_path);
 
+    h = figure;
+    plot(tmp.time, tmp.avg.pow)
+    title(params.modality)
+
+    h = figure;
+    plot(timelocked_data.time, timelocked_data.avg)
+    title([params.modality '_timelocked data'], Interpreter="none")
+
     cfg = [];
     cfg.method          = 'surface';
     cfg.funparameter    = 'pow';
@@ -36,6 +44,7 @@ MNE = [];
     ft_sourceplot(cfg, tmp)
     lighting gouraud
     material dull
+    view(-90,0)
     title([params.modality ' (FAHM=' num2str(MNE.fahm,3) 'cm^2; t=' num2str(round(peak*1e3)) 'ms)']) 
     saveas(h, fullfile(save_path,'source analysis', [params.sub '_' params.modality '_mne_.jpg']))
     close all
