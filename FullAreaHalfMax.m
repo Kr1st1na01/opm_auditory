@@ -1,8 +1,8 @@
 function m60 = FullAreaHalfMax(sourcedistribution,sourcemodel,params,save_path)
-%UNTITLED Calculates the full area at half max amplitude
-%   Detailed explanation goes here
-[~,i1] = min(abs(sourcedistribution.time-0.04));
-[~,i2] = min(abs(sourcedistribution.time-0.08));
+% Calculates the full area at half max amplitude
+
+[~,i1] = min(abs(sourcedistribution.time-0.175));
+[~,i2] = min(abs(sourcedistribution.time-0.225));
 
 dat = sourcedistribution.avg.pow(:,i1:i2);
 [~,i_latency] = max(mean(abs(dat),1)); % max of mean across sources
@@ -40,7 +40,7 @@ hold off
 xlabel('t [msec]')
 ylabel('total power')
 xlim([-params.pre params.post]*1e3);
-title(['Summed source power ' params.modality ' - audodd MMN'])
-saveas(h, fullfile(save_path, 'source analysis', [params.sub '_' params.modality '_mne_sourcepow_audodd-MMN.jpg']))
+title(['Summed source power ' params.modality ' - audodd Std'])
+saveas(h, fullfile(save_path, 'source analysis', [params.sub '_' params.modality '_mne_sourcepow_audodd-Std.jpg']))
 
 end

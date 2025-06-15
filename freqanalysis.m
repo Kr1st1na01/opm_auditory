@@ -28,7 +28,7 @@ ylabel(params.pow_label)
 title(['Frequency analysis ' params.modality ' - ' params.condition ' (n_{chs}=' num2str(length(FFT_timelocked.cfg.channel)) ')'], Interpreter="none")
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq analysis_butterfly audodd_' params.condition '.jpg']))
 
-% Plot FFT
+% Plot topographical FFT
 cfg = [];
 cfg.parameter       = 'powspctrm';
 cfg.layout          = params.layout;
@@ -37,22 +37,39 @@ cfg.showlabels      = 'yes';
 h = figure;
 ft_multiplotER(cfg, FFT_timelocked);
 title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{chs}=' num2str(length(FFT_timelocked.cfg.channel)) ')'], Interpreter="none")
-colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_' params.condition '.jpg']))
 
 % Channel with highest peak
 h = figure;
-[pow, pks] = max(FFT_timelocked.powspctrm(:,ismember(params.specificfreq, FFT_timelocked.freq)));
-peak.values = [peak.values; pow];
-peak.labels(end+1,1) = {[params.modality '_Freq tag_FFT_' params.condition '_freq ' int2str(params.specificfreq) '_' params.pow_label]};
+[~, pks] = max(FFT_timelocked.powspctrm(:,find(params.specificfreq == FFT_timelocked.freq)));
+peak.values(peak.number_count,1) = pks;
+peak.labels(peak.number_count,1) = {[params.modality '_Freq tag_FFT_' params.condition '_freq ' int2str(params.specificfreq) '_' params.pow_label]};
 cfg.channel = pks;
 ft_singleplotER(cfg, FFT_timelocked)
 xlabel('frequency [Hz]')
 ylabel(params.pow_label)
 title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{chs}=' num2str(length(FFT_timelocked.cfg.channel)) ')'], Interpreter="none")
+legend(FFT_timelocked.label(pks), Interpreter="none")
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_max sensor ' params.condition '.jpg']))
 
-% Topoplot
+% Channel with second highest peak
+FFT_timelocked_ori = FFT_timelocked;
+cfg = [];
+cfg.parameter       = 'powspctrm';
+cfg.layout          = params.layout;
+cfg.showlabels      = 'yes';
+FFT_timelocked.powspctrm(pks,find(params.specificfreq == FFT_timelocked.freq)) = 0;
+[~, pks2] = max(FFT_timelocked.powspctrm(:,find(params.specificfreq == FFT_timelocked.freq)));
+h = figure;
+cfg.channel = pks2;
+ft_singleplotER(cfg, FFT_timelocked_ori)
+xlabel('frequency [Hz]')
+ylabel(params.pow_label)
+title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{chs}=' num2str(length(FFT_timelocked_ori.cfg.channel)) ')'], Interpreter="none")
+legend(FFT_timelocked.label(pks2), Interpreter="none")
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_max sensor ' params.condition ' 2.jpg']))
+
+% Plot activation in topoplot
 h = figure;
 cfg = [];
 cfg.baselinetype    = 'relative';
@@ -61,7 +78,6 @@ cfg.layout = params.layout;
 cfg.xlim = [params.pretimwin params.posttimwin];
 ft_topoplotTFR(cfg, FFT_timelocked)
 title(['Evoked ' params.modality ' - FFT ' params.condition ' (n_{chs}=' num2str(length(FFT_timelocked.cfg.channel)) ')'], Interpreter="none")
-colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_FFT_Topoplot_' params.condition '.jpg']))
 
 
@@ -90,35 +106,79 @@ cfg.baseline        = [-params.pre 0];
 h = figure;
 ft_multiplotTFR(cfg, TFRhann_multi);
 title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{chs}=' num2str(length(TFRhann_multi.cfg.channel)) ')'], Interpreter="none")
-colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_' params.condition '.jpg']))
 
 % Channel with highest peak
+cfg = [];
+cfg.parameter       = 'powspctrm';
+cfg.layout          = params.layout;
+cfg.showlabels      = 'yes';
+cfg.baselinetype    = 'relative';
+cfg.baseline        = [-params.pre 0];
+
 h = figure;
-freq_idx = find(TFRhann_multi.freq == params.specificfreq);
-val = nanmean(TFRhann_multi.powspctrm(pks, freq_idx, :));
 cfg.channel = pks;
 ft_singleplotTFR(cfg, TFRhann_multi)
 xlabel('time [s]')
 ylabel('frequency [Hz]')
-title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{chs}=' num2str(length(TFRhann_multi.cfg.channel)) ')'], Interpreter="none")
+title(['Evoked ' params.modality ' - TFR ' params.condition],TFRhann_multi.label(pks), Interpreter="none")
 colorbar
 saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_max sensor ' params.condition '.jpg']))
 
-% Big Topoplot
+% % Channel with second highest peak
+cfg = [];
+cfg.parameter       = 'powspctrm';
+cfg.layout          = params.layout;
+cfg.showlabels      = 'yes';
+cfg.baselinetype    = 'relative';
+cfg.baseline        = [-params.pre 0];
+
+h = figure;
+cfg.channel = pks2;
+ft_singleplotTFR(cfg, TFRhann_multi)
+xlabel('time [s]')
+ylabel('frequency [Hz]')
+title(['Evoked ' params.modality ' - TFR ' params.condition], TFRhann_multi.label(pks2), Interpreter="none")
+colorbar
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_max sensor ' params.condition ' 2.jpg']))
+
+% Topoplot showing which sensor was picked with a white star
 h = figure;
 cfg = [];
 cfg.baselinetype    = 'relative';
 cfg.baseline        = [-params.pre 0];
 cfg.layout = params.layout;
+cfg.highlight = 'on';
+cfg.highlightchannel = pks;
+cfg.highlightcolor = 'white';
+cfg.highlightsymbol = 'pentagram';
+cfg.highlightsize = 12;
 cfg.xlim = [params.freqwin(1) params.freqwin(end)];
 cfg.ylim = [params.freqylim];
 ft_topoplotTFR(cfg, TFRhann_multi)
-title(['Evoked ' params.modality ' - TFR ' params.condition ' (n_{chs}=' num2str(length(TFRhann_multi.cfg.channel)) ')'], Interpreter="none")
+title(['Evoked ' params.modality ' - TFR ' params.condition],TFRhann_multi.label(pks), Interpreter="none")
 colorbar
-saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_' params.condition '_0.jpg']))
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_' params.condition ' with channel selection.jpg']))
 
-% Topoplot, the small times
+% Second Topoplot showing which sensor was picked with a white star
+h = figure;
+cfg = [];
+cfg.baselinetype    = 'relative';
+cfg.baseline        = [-params.pre 0];
+cfg.layout = params.layout;
+cfg.highlight = 'on';
+cfg.highlightchannel = pks2;
+cfg.highlightcolor = 'white';
+cfg.highlightsymbol = 'pentagram';
+cfg.highlightsize = 12;
+cfg.xlim = [params.freqwin(1) params.freqwin(end)];
+cfg.ylim = [params.freqylim];
+ft_topoplotTFR(cfg, TFRhann_multi)
+title(['Evoked ' params.modality ' - TFR ' params.condition],TFRhann_multi.label(pks2), Interpreter="none")
+colorbar
+saveas(h, fullfile(save_path, 'figs', [params.sub '_' params.modality '_Freq tag_TFR_' params.condition ' with channel selection 2.jpg']))
+
+% Topoplot done in small steps
 s = (params.freqwin(end)-params.freqwin(1))/params.freqsteps;
 fignum = s/s;
 li = params.freqwin(1);

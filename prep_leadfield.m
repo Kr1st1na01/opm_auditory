@@ -2,7 +2,7 @@ function [leadfield] = prep_leadfield(headmodels,sourcemodel, timelocked_data, n
 % Prepare leadfields
 
 headmodel = headmodels.headmodel_meg;
-sourcemodel.mom = surface_normals(sourcemodel.pos, sourcemodel.tri, 'vertex')';
+%sourcemodel.mom = surface_normals(sourcemodel.pos, sourcemodel.tri, 'vertex')';
 sourcemodel.unit = 'cm';
 
 %% MEG MAG
@@ -13,6 +13,6 @@ sourcemodel.unit = 'cm';
     cfg.headmodel        = headmodel;          % volume conduction model
     leadfield = ft_prepare_leadfield(cfg,timelocked_data);
 
-save(fullfile(save_path,'source analysis', [name '_leadfield']), "leadfield"); disp('done');
+save(fullfile(save_path, [name '_leadfield']), "leadfield"); disp('done');
 
 end

@@ -5,8 +5,10 @@ cfg = [];
 cfg.channel = params.chs;
 data = ft_selectdata(cfg, data);
 
+% The timewindow for the TFR topoplot. Done in the end of freqanalysis.m 
 params.freqsteps = 0.2;
 params.freqwin = [0.2 0.8];
+
 % Timewindow for Topoplot in freqanalysis
 params.pretimwin = 0.08;
 params.posttimwin = 0.12;
@@ -36,13 +38,7 @@ params.specificfreq = 43;
 peak = freqanalysis(data, params, save_path, peak);
 
 %% Go trigger
-G = [];
-
-GL = find(data.trialinfo==params.trigger_code(3));
-GH = find(data.trialinfo==params.trigger_code(5));
-
-G = [G; GL];
-G = [G; GH];
+G = find(ismember(data.trialinfo, [params.trigger_code(3) params.trigger_code(5)])); % all Go triggers saved in one place
 
 params.trials = G;
 params.condition = 'Go';
@@ -52,8 +48,8 @@ params.specificfreq = 43;
 peak = freqanalysis(data, params, save_path, peak);
 
 %% Saving trigger indeces
-pre_NG = [];
 NG = find(ismember(data.trialinfo, [params.trigger_code(2) params.trigger_code(4)])); % all No Go triggers saved in one place
+pre_NG = [];
 
 for i = 1:size(NG)
     pre_NG = [pre_NG; NG(i)-1]; % for every index we save the one before

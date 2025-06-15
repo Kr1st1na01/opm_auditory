@@ -4,17 +4,11 @@ function fit_mne(save_path, timelocked_data, headmodel, sourcemodel, sourcemodel
 %% MNE invserse
 MNE = [];
 
-    if isfield(params,'use_cov_all') 
-        if params.use_cov_all
-            timelocked_data.cov = timelocked_data.cov_all;
-        end
-    end
-
     cfg = [];
     cfg.method              = 'mne';
     cfg.mne.prewhiten       = 'yes';
     cfg.mne.lambda          = 3;
-    cfg.mne.scalesourcecov  = 'yes';
+    cfg.mne.scalesourcecov  = params.scalesourcecov; % Put as no
     cfg.headmodel           = headmodel;    % supply the headmodel
     cfg.senstype            = 'meg';
     cfg.sourcemodel         = leadfield;
@@ -30,7 +24,7 @@ MNE = [];
 
     h = figure;
     plot(timelocked_data.time, timelocked_data.avg)
-    title([params.modality '_timelocked data'], Interpreter="none")
+    title([params.modality ' averaged data'], Interpreter="none")
 
     cfg = [];
     cfg.method          = 'surface';

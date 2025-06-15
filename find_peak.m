@@ -32,12 +32,13 @@ function [tmp, peak] = find_peak(data, params, peak)
         tmp.latency = data.time(:,tmp.i_peaktime);
     end
 
-    % Statistics
-    peak.labels(end+1,1) = {[params.modality '_Evoked data_' params.condition '_amplitude ' params.amp_label]}; % Save amplitude
-    peak.values = [peak.values; tmp.amplitude];
+    % Statistics (should make this better, not add at the end)
+    peak.labels(peak.number_count,1) = {[params.modality '_Evoked data_' params.condition '_amplitude ' params.amp_label]}; % Save amplitude
+    peak.values(peak.number_count,1) = tmp.amplitude;
 
-    peak.labels(end+1,1) = {[params.modality '_Evoked data_' params.condition '_latency [s]']}; % Save latency
-    peak.values = [peak.values; tmp.latency];
+    peak.labels(peak.number_count+1,1) = {[params.modality '_Evoked data_' params.condition '_latency [s]']}; % Save latency
+    peak.values(peak.number_count+1,1) = tmp.latency;
 
+    peak.number_count = peak.number_count+2;
 
 end
